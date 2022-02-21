@@ -15,8 +15,11 @@ function install(){
   help $@
   procuse=$(getnproc $@)
   # End testing
-  export CC="$(command -v gcc)"
-  export CXX="$(command -v g++)"
+  unalias g++ &>/dev/null
+  unalias gcc &>/dev/null
+
+  export CC=$(command -v gcc)
+  export CXX=$(command -v g++)
   
   # Check requirements; Git && GCC
   if ! [ -x "$(command -v gcc)" ]; then
