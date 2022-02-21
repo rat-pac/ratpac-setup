@@ -247,6 +247,8 @@ function install(){
   outfile="env.sh"
   printf "export PATH=$prefix/bin:\$PATH\n" > $outfile
   printf "export LD_LIBRARY_PATH=$prefix/lib:\$LD_LIBRARY_PATH\n" >> $outfile
+  printf "export CC=$CC\n" >> $outfile
+  printf "export CXX=$CXX\n" >> $outfile
   printf "pushd $prefix/bin 2>&1 >/dev/null\nsource thisroot.sh\nsource geant4.sh\npopd 2>&1 >/dev/null\n" >> $outfile
   printf "source $prefix/../ratpac/ratpac.sh" >> $outfile
 }
