@@ -15,9 +15,6 @@ function install(){
   help $@
   procuse=$(getnproc $@)
   # End testing
-  unalias g++ &>/dev/null
-  unalias gcc &>/dev/null
-
   export CC=$(command -v gcc)
   export CXX=$(command -v g++)
   
@@ -73,6 +70,7 @@ function install(){
     fi
   done
   
+  cleanup=true
   boolOnly=false
   for element in $@;
   do
@@ -114,6 +112,9 @@ function install(){
       skip_ratpac=true
       skip_sibyl=true
     fi
+    if [ $element == "--noclean" ]
+      cleanup=false
+    fi
   done
   
   prefix=$(pwd -P)/local
@@ -139,7 +140,9 @@ function install(){
       printf "Cmake install failed ... check logs\n"
       exit 1
     fi
-    #rm -rf cmake_src cmake_build
+    if [ "$cleanup" = true ]
+      rm -rf cmake_src cmake_build
+    fi
   fi
   
   # Install python
@@ -159,7 +162,9 @@ function install(){
       printf "Python install failed ... check logs\n"
       exit 1
     fi
-    #rm -rf python_src
+    if [ "$cleanup" = true ]
+      rm -rf python_src
+    fi
     python3 -m pip install --upgrade pip
     python3 -m pip install numpy docopt
   fi
@@ -185,7 +190,9 @@ function install(){
       printf "Root install failed ... check logs\n"
       exit 1
     fi
-    #rm -rf root_src root_build
+    if [ "$cleanup" = true ]
+      rm -rf root_src root_build
+    fi
   fi
   
   # Install Geant4
@@ -206,7 +213,9 @@ function install(){
       printf "G4 install failed ... check logs\n"
       exit 1
     fi
-    #rm -rf geant_src geant_build
+    if [ "$cleanup" = true ]
+      rm -rf geant_src geant_build
+    fi
   fi
   
   # Install rat-pac
