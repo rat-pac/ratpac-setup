@@ -125,7 +125,7 @@ function install(){
   # Install cmake
   if ! [ "$skip_cmake" = true ]
   then
-    git clone https://github.com/Kitware/CMake.git --single-branch --branch v3.16.0 cmake_src
+    git clone https://github.com/Kitware/CMake.git --single-branch --branch v3.22.0 cmake_src
     mkdir -p cmake_build
     cd cmake_build
     ../cmake_src/bootstrap --prefix=../local \
