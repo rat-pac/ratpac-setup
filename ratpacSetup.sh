@@ -113,6 +113,7 @@ function install(){
       skip_sibyl=true
     fi
     if [ $element == "--noclean" ]
+    then
       cleanup=false
     fi
   done
@@ -141,6 +142,7 @@ function install(){
       exit 1
     fi
     if [ "$cleanup" = true ]
+    then
       rm -rf cmake_src cmake_build
     fi
   fi
@@ -163,6 +165,7 @@ function install(){
       exit 1
     fi
     if [ "$cleanup" = true ]
+    then
       rm -rf python_src
     fi
     python3 -m pip install --upgrade pip
@@ -191,6 +194,7 @@ function install(){
       exit 1
     fi
     if [ "$cleanup" = true ]
+    then
       rm -rf root_src root_build
     fi
   fi
@@ -214,6 +218,7 @@ function install(){
       exit 1
     fi
     if [ "$cleanup" = true ]
+    then
       rm -rf geant_src geant_build
     fi
   fi
