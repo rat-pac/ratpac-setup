@@ -202,7 +202,7 @@ function install(){
   # Install Geant4
   if ! [ "$skip_geant" = true ]
   then
-    git clone https://github.com/geant4/geant4.git --single-branch --branch geant4-10.4-release geant_src
+    git clone https://github.com/geant4/geant4.git --single-branch --branch geant4-11.0-release geant_src
     mkdir -p geant_build
     cd geant_build
     cmake -DCMAKE_INSTALL_PREFIX=$prefix ../geant_src -DGEANT4_BUILD_EXPAT=OFF -DGEANT4_BUILD_MULTITHREADED=OFF -DGEANT4_USE_QT=ON -DGEANT4_INSTALL_DATA=ON -DGEANT4_INSTALL_DATA_TIMEOUT=15000 \
