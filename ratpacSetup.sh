@@ -150,7 +150,7 @@ function install(){
   # Install python
   if ! [ "$skip_python" = true ]
   then
-    git clone https://github.com/python/cpython.git --single-branch --branch 3.7 python_src
+    git clone https://github.com/python/cpython.git --single-branch --branch 3.10 python_src
     cd python_src
     ./configure --prefix=$prefix --enable-shared \
       && make -j$procuse \
