@@ -11,7 +11,7 @@ exec > >(tee -i install.log)
 exec 2>&1
 
 function install(){
-  gitdir="https://github.com/morganaskins/ratpac-experimental.git"
+  gitdir="https://github.com/oggroup/ratpac-two.git"
   help $@
   procuse=$(getnproc $@)
   # End testing
@@ -27,6 +27,12 @@ function install(){
     echo "git not installed"
     exit 1
   fi
+
+  outfile="env.sh"
+  printf "export PATH=$prefix/bin:\$PATH\n" > $outfile
+  printf "export LD_LIBRARY_PATH=$prefix/lib:\$LD_LIBRARY_PATH\n" >> $outfile
+  printf "export CC=$CC\n" >> $outfile
+  printf "export CXX=$CXX\n" >> $outfile
   
   skipping=false
   skip_cmake=false
@@ -35,6 +41,7 @@ function install(){
   skip_geant=false
   skip_ratpac=false
   skip_sibyl=false
+  skip_cry=false
   for element in $@;
   do
     if [ "$skipping" = true ]
@@ -62,6 +69,10 @@ function install(){
       if [ $element == "sibyl" ]
       then
         skip_sibyl=true
+      fi
+      if [ $element == "cry" ]
+      then
+        skip_cry=true
       fi
     fi
     if [ $element == "--skip" ]
@@ -100,6 +111,10 @@ function install(){
       then
         skip_sibyl=false
       fi
+      if [ $element == "cry" ]
+      then
+        skip_cry=false
+      fi
     fi
     if [ $element == "--only" ]
     then
@@ -111,6 +126,7 @@ function install(){
       skip_geant=true
       skip_ratpac=true
       skip_sibyl=true
+      skip_cry=true
     fi
     if [ $element == "--noclean" ]
     then
@@ -148,29 +164,30 @@ function install(){
   fi
   
   # Install python
-  if ! [ "$skip_python" = true ]
-  then
-    git clone https://github.com/python/cpython.git --single-branch --branch 3.10 python_src
-    cd python_src
-    ./configure --prefix=$prefix --enable-shared \
-      && make -j$procuse \
-      && make install
-    cd ../
-    # Check if python was successful, if so clean-up, otherwise exit
-    if test -f $prefix/bin/python3
-    then
-      printf "Python install successful\n"
-    else
-      printf "Python install failed ... check logs\n"
-      exit 1
-    fi
-    if [ "$cleanup" = true ]
-    then
-      rm -rf python_src
-    fi
-    python3 -m pip install --upgrade pip
-    python3 -m pip install numpy docopt
-  fi
+  # Disabling this for now
+  # if ! [ "$skip_python" = true ]
+  # then
+  #   git clone https://github.com/python/cpython.git --single-branch --branch 3.10 python_src
+  #   cd python_src
+  #   ./configure --prefix=$prefix --enable-shared \
+  #     && make -j$procuse \
+  #     && make install
+  #   cd ../
+  #   # Check if python was successful, if so clean-up, otherwise exit
+  #   if test -f $prefix/bin/python3
+  #   then
+  #     printf "Python install successful\n"
+  #   else
+  #     printf "Python install failed ... check logs\n"
+  #     exit 1
+  #   fi
+  #   if [ "$cleanup" = true ]
+  #   then
+  #     rm -rf python_src
+  #   fi
+  #   python3 -m pip install --upgrade pip
+  #   python3 -m pip install numpy docopt
+  # fi
   
   # Install root
   if ! [ "$skip_root" = true ]
@@ -222,6 +239,27 @@ function install(){
       rm -rf geant_src geant_build
     fi
   fi
+
+  # Install CRY for cosmogenics
+  if ! [ "$skip_cry" = true ]
+  then
+    curl https://nuclear.llnl.gov/simulation/cry_v1.7.tar.gz --output cry.tar.gz
+    tar xzvf cry.tar.gz
+    cd cry_v1.7
+    # Lets hack things up a bit to get a shared library
+    sed -i 's/$//' src/Makefile
+    sed -i '25 i \\t$(CXX) -shared $(OBJ) -o ../lib/libCRY.so' src/Makefile
+    sed -i 's/\-Wall/\-Wall \-fPIC/g' src/Makefile
+    make -j1 # Race condition using multiple threads
+    mkdir -p $prefix/data/cry
+    mv data/* $prefix/data/cry
+    # "Make install"
+    mv lib/libCRY.so $prefix/lib
+    mkdir -p $prefix/include/cry
+    cp src/*.h $prefix/include/cry
+    cd ../
+    rm -r cry_v1.7 cry.tar.gz
+  fi
   
   # Install rat-pac
   if ! [ "$skip_ratpac" = true ]
@@ -243,17 +281,12 @@ function install(){
     cd ../
   fi
 
-  #if ! [ "$skip_sibyl" = true ]
-  #then
-  #  source $prefix/../ratpac/ratpac.sh
-  #  python3 -m pip install git+https://github.com/ait-watchman/sibyl#egg=sibyl
-  #fi
-  
-  outfile="env.sh"
-  printf "export PATH=$prefix/bin:\$PATH\n" > $outfile
-  printf "export LD_LIBRARY_PATH=$prefix/lib:\$LD_LIBRARY_PATH\n" >> $outfile
-  printf "export CC=$CC\n" >> $outfile
-  printf "export CXX=$CXX\n" >> $outfile
+  if [[ -f "$prefix/lib/libCRY.so" ]];
+  then
+    printf "export CRYLIB=$prefix/lib\n" >> $outfile
+    printf "export CRYINCLUDE=$prefix/include/cry\n" >> $outfile
+    printf "export CRYDATA=$prefix/data/cry\n" >> $outfile
+  fi
   printf "pushd $prefix/bin 2>&1 >/dev/null\nsource thisroot.sh\nsource geant4.sh\npopd 2>&1 >/dev/null\n" >> $outfile
   printf "source $prefix/../ratpac/ratpac.sh" >> $outfile
 }
@@ -264,7 +297,7 @@ function help()
   do
     if [[ $element =~ "-h" ]];
     then
-      printf "Watchman Installer -- in progress\n"
+      printf "Ratpac Dependency Installer -- in progress\n"
       exit 0
     fi
   done
