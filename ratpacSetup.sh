@@ -29,6 +29,10 @@ function install(){
   fi
 
   outfile="env.sh"
+  prefix=$(pwd -P)/local
+  mkdir -p $prefix/bin
+  export PATH=$prefix/bin:$PATH
+  export LD_LIBRARY_PATH=$prefix/lib:$LD_LIBRARY_PATH
   printf "export PATH=$prefix/bin:\$PATH\n" > $outfile
   printf "export LD_LIBRARY_PATH=$prefix/lib:\$LD_LIBRARY_PATH\n" >> $outfile
   printf "export CC=$CC\n" >> $outfile
@@ -134,10 +138,6 @@ function install(){
     fi
   done
   
-  prefix=$(pwd -P)/local
-  mkdir -p $prefix/bin
-  export PATH=$prefix/bin:$PATH
-  export LD_LIBRARY_PATH=$prefix/lib:$LD_LIBRARY_PATH
   
   # Install cmake
   if ! [ "$skip_cmake" = true ]
