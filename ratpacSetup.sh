@@ -331,7 +331,7 @@ function check_deps()
   bool=true
   # Before trying to install anything, confirm a list of dependencies
   echo "Checking list of dependencies ..."
-  cmds=(gcc gfortran openssl curl)
+  cmds=(gcc openssl curl)
   for c in ${cmds[@]}
   do
     if command_exists $c
