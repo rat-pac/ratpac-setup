@@ -197,7 +197,7 @@ function install(){
     git clone https://github.com/root-project/root.git --single-branch --branch v6-25-02 root_src
     mkdir -p root_build
     cd root_build
-    cmake -DCMAKE_INSTALL_PREFIX=$prefix -D minuit2=ON\
+    cmake -DCMAKE_INSTALL_PREFIX=$prefix -D roofit=OFF -D minuit2=ON\
         ../root_src \
       && make -j$procuse \
       && make install
