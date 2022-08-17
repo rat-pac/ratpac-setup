@@ -11,7 +11,7 @@ exec > >(tee -i install.log)
 exec 2>&1
 
 function install(){
-  gitdir="https://github.com/oggroup/ratpac-two.git"
+  gitdir="git@github.com:oggroup/ratpac-two.git"
   help $@
   procuse=$(getnproc $@)
   # End testing
