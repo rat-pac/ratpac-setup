@@ -37,6 +37,10 @@ function install(){
   printf "export LD_LIBRARY_PATH=$prefix/lib:\$LD_LIBRARY_PATH\n" >> $outfile
   printf "export CC=$CC\n" >> $outfile
   printf "export CXX=$CXX\n" >> $outfile
+
+  ## Tensorflow options
+  enable_gpu=false
+  enable_mac=false
   
   skipping=false
   skip_cmake=false
@@ -46,6 +50,7 @@ function install(){
   skip_ratpac=false
   skip_sibyl=false
   skip_cry=false
+  skip_tflow=false
   for element in $@;
   do
     if [ "$skipping" = true ]
@@ -77,6 +82,10 @@ function install(){
       if [ $element == "cry" ]
       then
         skip_cry=true
+      fi
+      if [ $element == "tensorflow" ]
+      then
+        skip_tflow=true
       fi
     fi
     if [ $element == "--skip" ]
@@ -119,6 +128,10 @@ function install(){
       then
         skip_cry=false
       fi
+      if [ $element == "tensorflow" ]
+      then
+        skip_tflow=false
+      fi
     fi
     if [ $element == "--only" ]
     then
@@ -131,10 +144,19 @@ function install(){
       skip_ratpac=true
       skip_sibyl=true
       skip_cry=true
+      skip_tflow=true
     fi
     if [ $element == "--noclean" ]
     then
       cleanup=false
+    fi
+    if [ $element == "--gpu" ]
+    then
+      enable_gpu=true
+    fi
+    if [ $element == "--mac" ]
+    then
+      enable_mac=true
     fi
   done
   
@@ -259,6 +281,31 @@ function install(){
     cp src/*.h $prefix/include/cry
     cd ../
     rm -r cry_v1.7 cry.tar.gz
+  fi
+
+  # Tensorflow
+  if ! [ "$skip_tflow" = true ]
+  then
+    # CPU only or GPU support, listen for the --gpu command? Also if macos?
+    linuxGPU="https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-gpu-linux-x86_64-2.9.1.tar.gz"
+    linuxCPU="https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-2.9.1.tar.gz"
+    macCPU="https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-darwin-x86_64-2.9.1.tar.gz"
+
+    tfurl=$linuxCPU #Default
+    if [ "$enable_gpu" = true ]
+    then
+      tfurl=$linuxGPU
+    fi
+    if [ "$enable_mac" = true ]
+    then
+      tfurl=$macCPU
+    fi
+    curl $tfurl --output tensorflow.tar.gz
+    tar -C $prefix -xzf tensorflow.tar.gz
+
+    git clone git@github.com:serizba/cppflow.git
+    cp -r cppflow/include/cppflow $prefix/include
+    rm -rf tensorflow.tar.gz cppflow
   fi
   
   # Install rat-pac
