@@ -2,7 +2,6 @@
 
 # Since system dependencies, especially on clusters, are a pain
 # Lets just pre-install everything (except GCC for now).
-# cmake and python are not up-to-date in this
 
 # Todo:
 # --help, -h
@@ -44,11 +43,9 @@ function install(){
   
   skipping=false
   skip_cmake=false
-  skip_python=false
   skip_root=false
   skip_geant=false
   skip_ratpac=false
-  skip_sibyl=false
   skip_cry=false
   skip_tflow=false
   for element in $@;
@@ -58,10 +55,6 @@ function install(){
       if [ $element == "cmake" ]
       then
         skip_cmake=true
-      fi
-      if [ $element == "python" ]
-      then
-        skip_python=true
       fi
       if [ $element == "root" ]
       then
@@ -74,10 +67,6 @@ function install(){
       if [ $element == "ratpac" ]
       then
         skip_ratpac=true
-      fi
-      if [ $element == "sibyl" ]
-      then
-        skip_sibyl=true
       fi
       if [ $element == "cry" ]
       then
@@ -104,10 +93,6 @@ function install(){
       then
         skip_cmake=false
       fi
-      if [ $element == "python" ]
-      then
-        skip_python=false
-      fi
       if [ $element == "root" ]
       then
         skip_root=false
@@ -119,10 +104,6 @@ function install(){
       if [ $element == "ratpac" ]
       then
         skip_ratpac=false
-      fi
-      if [ $element == "sibyl" ]
-      then
-        skip_sibyl=false
       fi
       if [ $element == "cry" ]
       then
@@ -138,11 +119,9 @@ function install(){
       # Only will overwrite the skipping rules
       boolOnly=true
       skip_cmake=true
-      skip_python=true
       skip_root=true
       skip_geant=true
       skip_ratpac=true
-      skip_sibyl=true
       skip_cry=true
       skip_tflow=true
     fi
@@ -184,32 +163,6 @@ function install(){
       rm -rf cmake_src cmake_build
     fi
   fi
-  
-  # Install python
-  # Disabling this for now
-  # if ! [ "$skip_python" = true ]
-  # then
-  #   git clone https://github.com/python/cpython.git --single-branch --branch 3.10 python_src
-  #   cd python_src
-  #   ./configure --prefix=$prefix --enable-shared \
-  #     && make -j$procuse \
-  #     && make install
-  #   cd ../
-  #   # Check if python was successful, if so clean-up, otherwise exit
-  #   if test -f $prefix/bin/python3
-  #   then
-  #     printf "Python install successful\n"
-  #   else
-  #     printf "Python install failed ... check logs\n"
-  #     exit 1
-  #   fi
-  #   if [ "$cleanup" = true ]
-  #   then
-  #     rm -rf python_src
-  #   fi
-  #   python3 -m pip install --upgrade pip
-  #   python3 -m pip install numpy docopt
-  # fi
   
   # Install root
   if ! [ "$skip_root" = true ]
@@ -335,7 +288,7 @@ function install(){
     printf "export CRYDATA=$prefix/data/cry\n" >> $outfile
   fi
   printf "pushd $prefix/bin 2>&1 >/dev/null\nsource thisroot.sh\nsource geant4.sh\npopd 2>&1 >/dev/null\n" >> $outfile
-  printf "source $prefix/../ratpac/ratpac.sh" >> $outfile
+  printf "if [ -f \"$prefix/../ratpac/ratpac.sh\" ]; then\nsource $prefix/../ratpac/ratpac.sh\nfi" >> $outfile
 }
 
 function help()
