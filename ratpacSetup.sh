@@ -16,6 +16,9 @@ function install(){
   # End testing
   export CC=$(command -v gcc)
   export CXX=$(command -v g++)
+
+  # Versioning
+  root_branch="v6-28-00-patches"
   
   # Check requirements; Git && GCC
   if ! [ -x "$(command -v gcc)" ]; then
@@ -167,7 +170,7 @@ function install(){
   # Install root
   if ! [ "$skip_root" = true ]
   then
-    git clone https://github.com/root-project/root.git --single-branch --branch v6-26-00 root_src
+    git clone https://github.com/root-project/root.git --single-branch --branch $root_branch root_src
     mkdir -p root_build
     cd root_build
     cmake -DCMAKE_INSTALL_PREFIX=$prefix -D xrootd=OFF -D roofit=OFF -D minuit2=ON\
