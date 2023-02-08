@@ -236,7 +236,10 @@ function install(){
     mkdir -p $prefix/include/cry
     cp src/*.h $prefix/include/cry
     cd ../
-    rm -r cry_v1.7 cry.tar.gz
+    if [ "$cleanup" = true ]
+    then
+      rm -r cry_v1.7 cry.tar.gz
+    fi
   fi
 
   # Tensorflow
