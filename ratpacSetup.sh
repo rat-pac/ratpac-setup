@@ -266,6 +266,15 @@ function install(){
     cp -r cppflow/include/cppflow $prefix/include
     rm -rf tensorflow.tar.gz cppflow
   fi
+
+  # Geant4-Pybind and such: need to wrap with chroma install
+  virtualenv venv
+  source venv/bin/activate
+  git clone --recursive https://github.com/HaarigerHarald/geant4_pybind
+  pip install ./geant4_pybind
+  cd geant4_pybind/pybind11
+  cmake -DCMAKE_INSTALL_PREFIX=$prefix . -Bbuild
+  cmake --build build --target install
   
   # Install rat-pac
   if ! [ "$skip_ratpac" = true ]
