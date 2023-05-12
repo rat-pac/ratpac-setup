@@ -10,7 +10,7 @@ exec > >(tee -i install.log)
 exec 2>&1
 
 function install(){
-  gitdir="git@github.com:oggroup/ratpac-two.git"
+  gitdir="git@github.com:eosdemonstrator/ratpac-two.git"
   help $@
   procuse=$(getnproc $@)
   # End testing
@@ -19,6 +19,8 @@ function install(){
 
   # Versioning
   root_branch="v6-28-00-patches"
+  root_branch="latest-stable"
+  root_branch="v6-28-04"
   
   # Check requirements; Git && GCC
   if ! [ -x "$(command -v gcc)" ]; then
@@ -51,6 +53,7 @@ function install(){
   skip_ratpac=false
   skip_cry=false
   skip_tflow=false
+  skip_chroma=false
   for element in $@;
   do
     if [ "$skipping" = true ]
@@ -78,6 +81,10 @@ function install(){
       if [ $element == "tensorflow" ]
       then
         skip_tflow=true
+      fi
+      if [ $element == "chroma" ]
+      then
+        skip_chroma=true
       fi
     fi
     if [ $element == "--skip" ]
@@ -116,6 +123,10 @@ function install(){
       then
         skip_tflow=false
       fi
+      if [ $element == "chroma" ]
+      then
+        skip_chroma=false
+      fi
     fi
     if [ $element == "--only" ]
     then
@@ -127,6 +138,7 @@ function install(){
       skip_ratpac=true
       skip_cry=true
       skip_tflow=true
+      skip_chroma=true
     fi
     if [ $element == "--noclean" ]
     then
@@ -173,7 +185,7 @@ function install(){
     git clone https://github.com/root-project/root.git --single-branch --branch $root_branch root_src
     mkdir -p root_build
     cd root_build
-    cmake -DCMAKE_INSTALL_PREFIX=$prefix -D xrootd=OFF -D roofit=OFF -D minuit2=ON\
+    cmake -DCMAKE_INSTALL_PREFIX=$prefix -DCMAKE_CXX_STANDARD=20 -D xrootd=OFF -D roofit=OFF -D minuit2=ON\
         ../root_src \
       && make -j$procuse \
       && make install
@@ -267,14 +279,17 @@ function install(){
     rm -rf tensorflow.tar.gz cppflow
   fi
 
-  # Geant4-Pybind and such: need to wrap with chroma install
-  virtualenv venv
-  source venv/bin/activate
-  git clone --recursive https://github.com/HaarigerHarald/geant4_pybind
-  pip install ./geant4_pybind
-  cd geant4_pybind/pybind11
-  cmake -DCMAKE_INSTALL_PREFIX=$prefix . -Bbuild
-  cmake --build build --target install
+  if ! [ "$skip_chroma" = true ]
+  then
+    # Geant4-Pybind and such: need to wrap with chroma install
+    virtualenv venv
+    source venv/bin/activate
+    git clone --recursive https://github.com/HaarigerHarald/geant4_pybind
+    pip install ./geant4_pybind
+    cd geant4_pybind/pybind11
+    cmake -DCMAKE_INSTALL_PREFIX=$prefix . -Bbuild
+    cmake --build build --target install
+  fi
   
   # Install rat-pac
   if ! [ "$skip_ratpac" = true ]
