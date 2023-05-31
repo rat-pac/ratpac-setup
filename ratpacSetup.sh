@@ -282,15 +282,17 @@ function install(){
   if ! [ "$skip_chroma" = true ]
   then
     # Geant4-Pybind and such: need to wrap with chroma install
-    virtualenv venv
-    source venv/bin/activate
+    virtualenv pyrat
+    source pyrat/bin/activate
     git clone --recursive https://github.com/HaarigerHarald/geant4_pybind
     pip install ./geant4_pybind
-    cd geant4_pybind/pybind11
+    pushd geant4_pybind/pybind11
     cmake -DCMAKE_INSTALL_PREFIX=$prefix . -Bbuild
     cmake --build build --target install
+    pip install .
+    popd
   fi
-  
+
   # Install rat-pac
   if ! [ "$skip_ratpac" = true ]
   then
@@ -318,7 +320,8 @@ function install(){
     printf "export CRYDATA=$prefix/data/cry\n" >> $outfile
   fi
   printf "pushd $prefix/bin 2>&1 >/dev/null\nsource thisroot.sh\nsource geant4.sh\npopd 2>&1 >/dev/null\n" >> $outfile
-  printf "if [ -f \"$prefix/../ratpac/ratpac.sh\" ]; then\nsource $prefix/../ratpac/ratpac.sh\nfi" >> $outfile
+  printf "if [ -f \"$prefix/../ratpac/ratpac.sh\" ]; then\nsource $prefix/../ratpac/ratpac.sh\nfi\n" >> $outfile
+  printf "if [ -f \"$prefix/../pyrat/bin/activate\" ]; then\nsource $prefix/../pyrat/bin/activate\nfi\n" >> $outfile
 }
 
 function help()
