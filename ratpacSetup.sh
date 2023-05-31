@@ -54,6 +54,7 @@ function install(){
   skip_cry=false
   skip_tflow=false
   skip_chroma=false
+  skip_nlopt=false
   for element in $@;
   do
     if [ "$skipping" = true ]
@@ -85,6 +86,10 @@ function install(){
       if [ $element == "chroma" ]
       then
         skip_chroma=true
+      fi
+      if [ $element == "nlopt" ]
+      then
+        skip_nlopt=true
       fi
     fi
     if [ $element == "--skip" ]
@@ -127,6 +132,10 @@ function install(){
       then
         skip_chroma=false
       fi
+      if [ $element == "nlopt" ]
+      then
+        skip_nlopt=false
+      fi
     fi
     if [ $element == "--only" ]
     then
@@ -139,6 +148,7 @@ function install(){
       skip_cry=true
       skip_tflow=true
       skip_chroma=true
+      skip_nlopt=true
     fi
     if [ $element == "--noclean" ]
     then
@@ -292,6 +302,17 @@ function install(){
     pip install .
     popd
   fi
+
+  if ! [ "$skip_nlopt" = true ]
+  then
+    # Install NLOPT
+    git clone https://github.com/stevengj/nlopt.git
+    pushd nlopt
+    cmake -DCMAKE_INSTALL_PREFIX=$prefix . -Bbuild
+    cmake --build build --target install
+    popd
+  fi
+
 
   # Install rat-pac
   if ! [ "$skip_ratpac" = true ]
