@@ -11,7 +11,7 @@ exec 2>&1
 
 function install(){
     ## Array of installables
-    declare -A install_options=("cmake" "root" "geant4" "cry" "tensorflow" "ratpac")
+    declare -a install_options=("cmake" "root" "geant4" "cry" "tensorflow" "ratpac")
     declare -A install_selection
     for element in "${install_options[@]}"
     do
@@ -102,12 +102,13 @@ function install(){
             enable_mac=true
         fi
     done
-    
+
     # global options dictionary
     declare -A global_options=(["procuse"]=$procuse ["prefix"]=$prefix ["root_branch"]=$root_branch \
         ["geant_branch"]=$geant_branch ["enable_gpu"]=$enable_gpu ["enable_mac"]=$enable_mac \
         ["ratpac_repository"]=$ratpac_repository ["cleanup"]=$cleanup)
-    if [ "${insall_options[cmake]}" = true ]
+
+    if [ "${install_selection[cmake]}" = true ]
     then
         install_cmake global_options
     fi
