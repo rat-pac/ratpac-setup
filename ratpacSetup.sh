@@ -146,6 +146,7 @@ function install(){
     fi
     printf "pushd $prefix/bin 2>&1 >/dev/null\nsource thisroot.sh\nsource geant4.sh\npopd 2>&1 >/dev/null\n" >> $outfile
     printf "if [ -f \"$prefix/../ratpac/ratpac.sh\" ]; then\nsource $prefix/../ratpac/ratpac.sh\nfi" >> $outfile
+    echo "Done"
 }
 
 function help()
@@ -160,11 +161,9 @@ function help()
         if [[ $element =~ "-h" ]];
         then
             printf "\nAvailable Packages\n"
-            for key in "${!install_options[@]}"
-            do
-                printf "%-20s%-20s\n" $key "${install_options[$key]}"
-            done
-            printf "\nOptions\n"
+            # Print out the install options as comma separated list
+            printf "%s, " "${install_options[@]}"
+            printf "\n\nOptions\n"
             for key in "${!help_options[@]}"
             do
                 printf "%-20s%-20s\n" --$key "${help_options[$key]}"
