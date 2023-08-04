@@ -1,5 +1,5 @@
 # Ratpac Installation Script
-This script simplifies the install process for rat-pac by building the
+This script simplifies the install process for ratpac-two by building the
 requirements locally and setting up the appropriate environment variables.
 
 ## Dependencies
@@ -26,31 +26,33 @@ them in that case (ROOT / Geant-4).
 The installation script can be used to install each component individually or
 all at once. To install everything run:
 ```bash
-./ratpacSetup.sh
+./setup.sh
 ```
 Individually components can be selected, or excluded
 ```bash
 # Include only specific programs
-./ratpacSetup.sh --only cmake root geant4 sibyl cry tensorflow ratpac
+./setup.sh --only cmake root geant4 sibyl cry tensorflow ratpac
 # Install all but excluded programs, e.g:
-./ratpacSetup.sh --skip cmake
+./setup.sh --skip cmake
 ```
 Additional options are available, including passing make commands
 ```bash
 # For linux, tensorflow can either use the cpu(default) or gpu
-./ratpacSetup.sh --only tensorflow --gpu
+./setup.sh --only tensorflow --gpu
 # For mac, a separate tensorflow is available
-./ratpacSetup.sh --only tensorflow --mac
+./setup.sh --only tensorflow --mac
 # Pass number of processors to make, and even keep downloaded files for debugging
-./ratpacSetup.sh -j8 --noclean
+./setup.sh -j8 --noclean
+# For complete information run
+./setup.sh -h
 ```
 
 ## Usage 
 Once installation is complete there will be a new directory structure from where
-`ratpacSetup.sh` is run with a complete `./local` directory that contains all
+`setup.sh` is run with a complete `./local` directory that contains all
 of the header files, libraries, and executables, and an environment variable to
 source before running
 ```bash
 # Before running rat or installing new versions.
-source ratpacSetup/env.sh
+source env.sh
 ```

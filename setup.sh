@@ -19,8 +19,8 @@ function install(){
     done
     # Versioning
     root_branch="v6-28-00-patches"
-    geant_branch="v11.2.0.beta"
-    ratpac_repository="git@github.com:oggroup/ratpac-two.git"
+    geant_branch="v11.1.2"
+    ratpac_repository="git@github.com:rat-pac/ratpac-two.git"
 
     help $@
     procuse=$(getnproc $@)
