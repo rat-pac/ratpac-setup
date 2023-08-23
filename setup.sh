@@ -104,38 +104,38 @@ function install(){
     done
 
     # global options dictionary
-    declare -A global_options=(["procuse"]=$procuse ["prefix"]=$prefix ["root_branch"]=$root_branch \
+    declare -A options=(["procuse"]=$procuse ["prefix"]=$prefix ["root_branch"]=$root_branch \
         ["geant_branch"]=$geant_branch ["enable_gpu"]=$enable_gpu ["enable_mac"]=$enable_mac \
         ["ratpac_repository"]=$ratpac_repository ["cleanup"]=$cleanup)
 
     if [ "${install_selection[cmake]}" = true ]
     then
-        install_cmake global_options
+        install_cmake
     fi
 
     if [ "${install_selection[root]}" = true ]
     then
-        install_root global_options
+        install_root
     fi
 
     if [ "${install_selection[geant4]}" = true ]
     then
-        install_geant4 global_options
+        install_geant4
     fi
 
     if [ "${install_selection[cry]}" = true ]
     then
-        install_cry global_options
+        install_cry
     fi
 
     if [ "${install_selection[tensorflow]}" = true ]
     then
-        install_tensorflow global_options
+        install_tensorflow
     fi
 
     if [ "${install_selection[ratpac]}" = true ]
     then
-        install_ratpac global_options
+        install_ratpac
     fi
 
     if [[ -f "$prefix/lib/libCRY.so" ]];
@@ -257,7 +257,6 @@ function skip_check()
 ## Installation commands
 function install_cmake()
 {
-    declare -n options=$1
     git clone https://github.com/Kitware/CMake.git --single-branch --branch v3.22.0 cmake_src
     mkdir -p cmake_build
     cd cmake_build
@@ -281,7 +280,6 @@ function install_cmake()
 
 function install_root()
 {
-    declare -n options=$1
     git clone https://github.com/root-project/root.git --single-branch --branch ${options[root_branch]} root_src
     mkdir -p root_build
     cd root_build
@@ -306,7 +304,6 @@ function install_root()
 
 function install_geant4()
 {
-    declare -n options=$1
     git clone https://github.com/geant4/geant4.git --single-branch --branch ${options[geant_branch]} geant_src
     mkdir -p geant_build
     cd geant_build
@@ -332,7 +329,6 @@ function install_geant4()
 
 function install_cry()
 {
-    declare -n options=$1
     # Install CRY for cosmogenics
     curl https://nuclear.llnl.gov/simulation/cry_v1.7.tar.gz --output cry.tar.gz
     tar xzvf cry.tar.gz
@@ -357,7 +353,6 @@ function install_cry()
 
 function install_tensorflow()
 {
-    declare -n options=$1
     # Tensorflow
     # CPU only or GPU support, listen for the --gpu command? Also if macos?
     linuxGPU="https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-gpu-linux-x86_64-2.9.1.tar.gz"
@@ -383,7 +378,6 @@ function install_tensorflow()
 
 function install_ratpac()
 {
-    declare -n options=$1
     # Install rat-pac
     source ${options[prefix]}/bin/thisroot.sh
     source ${options[prefix]}/bin/geant4.sh
