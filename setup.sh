@@ -11,7 +11,7 @@ exec 2>&1
 
 function install(){
     ## Array of installables
-    declare -a install_options=("cmake" "root" "geant4" "cry" "tensorflow" "ratpac")
+    declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "ratpac")
     declare -A install_selection
     for element in "${install_options[@]}"
     do
@@ -133,6 +133,11 @@ function install(){
         install_tensorflow
     fi
 
+    if [ "${install_selection[chroma]}" = true ]
+    then
+        install_chroma
+    fi
+
     if [ "${install_selection[ratpac]}" = true ]
     then
         install_ratpac
@@ -145,7 +150,8 @@ function install(){
         printf "export CRYDATA=$prefix/data/cry\n" >> $outfile
     fi
     printf "pushd $prefix/bin 2>&1 >/dev/null\nsource thisroot.sh\nsource geant4.sh\npopd 2>&1 >/dev/null\n" >> $outfile
-    printf "if [ -f \"$prefix/../ratpac/ratpac.sh\" ]; then\nsource $prefix/../ratpac/ratpac.sh\nfi" >> $outfile
+    printf "if [ -f \"$prefix/../ratpac/ratpac.sh\" ]; then\nsource $prefix/../ratpac/ratpac.sh\nfi\n" >> $outfile
+    printf "if [ -f \"$prefix/../pyrat/bin/activate\" ]; then\nsource $prefix/../pyrat/bin/activate\nfi\n" >> $outfile
     echo "Done"
 }
 
@@ -394,6 +400,20 @@ function install_ratpac()
         exit 1
     fi
     cd ../
+}
+
+function install_chroma()
+{
+    # Geant-4 pybind, special chroma branch
+    virtualenv pyrat
+    source pyrat/bin/activate
+    git clone --recursive https://github.com/MorganAskins/geant4_pybind --single-branch --branch chroma
+    pip install ./geant4_pybind
+    pushd geant4_pybind/pybind11
+    cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} . -Bbuild
+    cmake --build build --target install
+    pip install .
+    popd
 }
 
 
