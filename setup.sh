@@ -11,7 +11,7 @@ exec 2>&1
 
 function install(){
     ## Array of installables
-    declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "ratpac")
+    declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "ratpac" "nlopt")
     declare -A install_selection
     for element in "${install_options[@]}"
     do
@@ -131,6 +131,11 @@ function install(){
     if [ "${install_selection[tensorflow]}" = true ]
     then
         install_tensorflow
+    fi
+
+    if [ "${install_selection[nlopt]}" = true ]
+    then
+        install_nlopt
     fi
 
     if [ "${install_selection[chroma]}" = true ]
@@ -315,6 +320,7 @@ function install_geant4()
     cd geant_build
     cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} ../geant_src -DGEANT4_BUILD_EXPAT=OFF \
         -DGEANT4_BUILD_MULTITHREADED=OFF -DGEANT4_USE_QT=ON -DGEANT4_INSTALL_DATA=ON \
+        -DGEANT4_BUILD_TLS_MODEL=global-dynamic \
         -DGEANT4_INSTALL_DATA_TIMEOUT=15000 -DGEANT4_USE_GDML=ON \
         && make -j${options[procuse]} \
         && make install
@@ -408,12 +414,24 @@ function install_chroma()
     virtualenv pyrat
     source pyrat/bin/activate
     git clone --recursive https://github.com/MorganAskins/geant4_pybind --single-branch --branch chroma
+    #git clone --recursive https://github.com/HaarigerHarald/geant4_pybind
     pip install ./geant4_pybind
-    pushd geant4_pybind/pybind11
+    rm -rf geant4_pybind
+    #pushd geant4_pybind/pybind11
+    #cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} . -Bbuild
+    #cmake --build build --target install
+    #pip install .
+    #popd
+}
+
+function install_nlopt()
+{
+    git clone https://github.com/stevengj/nlopt.git
+    pushd nlopt
     cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} . -Bbuild
     cmake --build build --target install
-    pip install .
     popd
+    rm -rf nlopt
 }
 
 
