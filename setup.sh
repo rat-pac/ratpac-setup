@@ -11,7 +11,7 @@ exec 2>&1
 
 function install(){
     ## Array of installables
-    declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "ratpac" "nlopt")
+    declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "torch" "ratpac" "nlopt")
     declare -A install_selection
     for element in "${install_options[@]}"
     do
@@ -131,6 +131,11 @@ function install(){
     if [ "${install_selection[tensorflow]}" = true ]
     then
         install_tensorflow
+    fi
+
+    if [ "${install_selection[torch]}" = true ]
+    then
+        install_torch
     fi
 
     if [ "${install_selection[nlopt]}" = true ]
@@ -365,11 +370,12 @@ function install_cry()
 
 function install_tensorflow()
 {
-    # Tensorflow
+    # Tensorflow: https://www.tensorflow.org/install/lang_c
     # CPU only or GPU support, listen for the --gpu command? Also if macos?
-    linuxGPU="https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-gpu-linux-x86_64-2.9.1.tar.gz"
-    linuxCPU="https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-2.9.1.tar.gz"
-    macCPU="https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-darwin-x86_64-2.9.1.tar.gz"
+    # Updated 2021-08-10
+    linuxGPU="https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-gpu-linux-x86_64-2.14.0.tar.gz"
+    linuxCPU="https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-2.14.0.tar.gz"
+    macCPU="https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-darwin-x86_64-2.14.0.tar.gz"
 
     tfurl=$linuxCPU #Default
     if [ "${options[enable_gpu]}" = true ]
@@ -386,6 +392,31 @@ function install_tensorflow()
     git clone git@github.com:serizba/cppflow.git
     cp -r cppflow/include/cppflow ${options[prefix]}/include
     rm -rf tensorflow.tar.gz cppflow
+}
+
+function install_torch()
+{
+    # PyTorch library found at pytorch.org/get-started/locally
+    # Use the GUI there to reveal the specific links
+    # Updated 2021-08-10
+    linuxCPU="https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.0.1%2Bcpu.zip"
+    linuxGPU="https://download.pytorch.org/libtorch/cu118/libtorch-cxx11-abi-shared-with-deps-2.0.1%2Bcu118.zip"
+    macCPU="https://download.pytorch.org/libtorch/cpu/libtorch-macos-2.0.1.zip"
+
+    tfurl=$linuxCPU #Default
+    if [ "${options[enable_gpu]}" = true ]
+    then
+        tfurl=$linuxGPU
+    fi
+    if [ "${options[enable_mac]}" = true ]
+    then
+        tfurl=$macCPU
+    fi
+
+    curl $tfurl --output torch.zip
+    unzip torch.zip -d torch
+    cp -r torch/libtorch/* ${options[prefix]}
+    rm -rf torch.zip torch
 }
 
 function install_ratpac()
