@@ -20,7 +20,7 @@ function install(){
     # Versioning
     root_branch="v6-28-00-patches"
     geant_branch="v11.1.2"
-    ratpac_repository="git@github.com:rat-pac/ratpac-two.git"
+    ratpac_repository="https://github.com/rat-pac/ratpac-two.git"
 
     help $@
     procuse=$(getnproc $@)
@@ -389,7 +389,7 @@ function install_tensorflow()
     curl $tfurl --output tensorflow.tar.gz
     tar -C ${options[prefix]} -xzf tensorflow.tar.gz
 
-    git clone git@github.com:serizba/cppflow.git
+    git clone https://github.com/serizba/cppflow.git
     cp -r cppflow/include/cppflow ${options[prefix]}/include
     rm -rf tensorflow.tar.gz cppflow
 }
