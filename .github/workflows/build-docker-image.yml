@@ -2,8 +2,8 @@ name: Build Docker Image
 
 on:
   push:
-    branches:
-      - 'main'
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   docker:
@@ -23,4 +23,4 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: stjimmys/ratpac2-deps:latest
+          tags: ratpac/ratpac-two:latest-base
