@@ -1,3 +1,6 @@
 *
 !README.md
 !setup.sh
+!Dockerfile
+!.github
+!.github/workflows
