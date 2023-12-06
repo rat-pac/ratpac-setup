@@ -21,8 +21,8 @@ WORKDIR /ratpac-setup
 
 RUN chown -R ratuser:ratuser /ratpac-setup
 USER ratuser
-RUN ./setup.sh --only root -j$(nproc+2)
-RUN ./setup.sh --only geant4 -j$(nproc+2)
+RUN ./setup.sh --only root -j$(nproc)
+RUN ./setup.sh --only geant4 -j$(nproc)
 RUN ./setup.sh --only cry
 ENV PATH=/ratpac-setup/local/bin:$PATH
 RUN sed -i '1s/^/#!\/bin\/bash\n/' /ratpac-setup/env.sh
