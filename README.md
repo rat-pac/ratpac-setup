@@ -1,4 +1,6 @@
 # Ratpac Installation Script
+[![Build Docker Image](https://github.com/rat-pac/ratpac-setup/actions/workflows/build-docker-image.yml/badge.svg)](https://github.com/rat-pac/ratpac-setup/actions/workflows/build-docker-image.yml)
+
 This script simplifies the install process for ratpac-two by building the
 requirements locally and setting up the appropriate environment variables.
 
