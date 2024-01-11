@@ -11,7 +11,8 @@ RUN apt-get -q update \
     libcurl4-gnutls-dev ca-certificates libssl-dev libffi-dev \
  && apt-get autoclean \
  && apt-get clean
-
+# Strip ABI tag to ensure that QT libraries can be used on EL7
+RUN strip --remove-section=.note.ABI-tag /usr/lib/x86_64-linux-gnu/libQt5Core.so.5
 RUN useradd -ms /bin/bash ratuser
 
 WORKDIR /
