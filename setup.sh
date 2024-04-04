@@ -296,7 +296,7 @@ function install_cmake()
 
 function install_root()
 {
-    git clone https://github.com/root-project/root.git --single-branch --branch ${options[root_branch]} root_src
+    git clone https://github.com/root-project/root.git --depth 1 --single-branch --branch ${options[root_branch]} root_src
     mkdir -p root_build
     cd root_build
     cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} -D xrootd=OFF -D roofit=OFF -D minuit2=ON\
@@ -320,7 +320,7 @@ function install_root()
 
 function install_geant4()
 {
-    git clone https://github.com/geant4/geant4.git --single-branch --branch ${options[geant_branch]} geant_src
+    git clone https://github.com/geant4/geant4.git --depth 1 --single-branch --branch ${options[geant_branch]} geant_src
     mkdir -p geant_build
     cd geant_build
     cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} ../geant_src -DGEANT4_BUILD_EXPAT=OFF \
@@ -442,17 +442,28 @@ function install_ratpac()
 function install_chroma()
 {
     # Geant-4 pybind, special chroma branch
-    virtualenv pyrat
-    source pyrat/bin/activate
-    git clone --recursive https://github.com/MorganAskins/geant4_pybind --single-branch --branch chroma
-    #git clone --recursive https://github.com/HaarigerHarald/geant4_pybind
-    pip install ./geant4_pybind
-    rm -rf geant4_pybind
-    #pushd geant4_pybind/pybind11
-    #cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} . -Bbuild
-    #cmake --build build --target install
-    #pip install .
-    #popd
+    #virtualenv pyrat
+    #source pyrat/bin/activate
+    #git clone --recursive https://github.com/MorganAskins/geant4_pybind --single-branch --branch chroma
+    ##git clone --recursive https://github.com/HaarigerHarald/geant4_pybind
+    #pip install ./geant4_pybind
+    #rm -rf geant4_pybind
+    ##pushd geant4_pybind/pybind11
+    ##cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} . -Bbuild
+    ##cmake --build build --target install
+    ##pip install .
+    ##popd
+
+    ## For now, just install zeromq
+    git clone --depth 1 -b v4.3.5 https://github.com/zeromq/libzmq.git libzmq_src
+    mkdir -p libzmq_build
+    pushd libzmq_build
+    cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} ../libzmq_src
+    make -j${options[procuse]} install
+    popd
+    rm -rf libzmq_src libzmq_build
+
+
 }
 
 function install_nlopt()
