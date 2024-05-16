@@ -1,17 +1,14 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Since system dependencies, especially on clusters, are a pain
 # Lets just pre-install everything (except GCC for now).
-
-# Todo:
-# --help, -h
 
 exec > >(tee -i install.log)
 exec 2>&1
 
 function install(){
     ## Array of installables
-    declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "torch" "ratpac" "nlopt")
+    declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "torch" "ratpac" "nlopt" "xerces" "icu")
     declare -A install_selection
     for element in "${install_options[@]}"
     do
@@ -113,6 +110,16 @@ function install(){
         install_cmake
     fi
 
+    if [ "${install_selection[icu]}" = true ]
+    then
+        install_icu
+    fi
+
+    if [ "${install_selection[xerces]}" = true ]
+    then
+        install_xerces
+    fi
+
     if [ "${install_selection[root]}" = true ]
     then
         install_root
@@ -170,7 +177,7 @@ function help()
     declare -A help_options=(["only"]="Only install the following packages" \
         ["skip"]="Skip the following packages" \
         ["gpu"]="Enable GPU support for tensorflow" \
-        ["mac"]="Enable Mac support for tensorflow" \
+        ["mac"]="Enable Mac support" \
         ["noclean"]="Do not clean up after install")
     for element in $@
     do
@@ -228,20 +235,26 @@ function check_deps()
             bool=false
         fi
     done
-    # Check libraries with ldd
-    echo "Checking for libraries ..."
+    # Check libraries with ldd if not using macOS
     libraries=(libX11 libXpm libXft libffi libXext libQt libOpenGL)
-    for lb in ${libraries[@]}
-    do
-        if check_lib $lb
-        then
-            printf "%-30s%-20s\n" $lb "Installed"
-        else
-            printf "%-30s%-20s\n" $lb "NOT AVAILABLE"
-            bool=false
-        fi
-    done
-    echo "Dependencies look to be in check"
+    if (${options[enable_mac]})
+    then
+        echo "MacOS install. Required libaries will not be checked."
+        echo "Please ensure ${libraries[@]} are installed on your system."
+    else
+        echo "Checking for libraries ..."
+        for lb in ${libraries[@]}
+        do
+            if check_lib $lb
+            then
+                printf "%-30s%-20s\n" $lb "Installed"
+            else
+                printf "%-30s%-20s\n" $lb "NOT AVAILABLE"
+                bool=false
+            fi
+        done
+        echo "Dependencies look to be in check"
+    fi
 
     $bool
 }
@@ -291,6 +304,53 @@ function install_cmake()
     if [ "${options[cleanup]}" = true ]
     then
         rm -rf cmake_src cmake_build
+    fi
+}
+
+function install_icu()
+{
+    wget https://github.com/unicode-org/icu/releases/download/release-74-2/icu4c-74_2-src.tgz
+    tar xzf icu4c-74_2-src.tgz
+    cd icu/source
+    chmod +x runConfigureICU configure install-sh
+    ./configure --prefix=${options[prefix]}
+    make -j${options[procuse]} && make install
+    cd ../..
+    # Check if cmake was successful, if so clean-up, otherwise exit
+    if test -f ${options[prefix]}/bin/icu-config
+    then
+        printf "ICU install successful\n"
+    else
+        printf "ICU install failed ... check logs\n"
+        exit 1
+    fi
+    if [ "${options[cleanup]}" = true ]
+    then
+        rm -rf icu4c-74_2-src.tgz icu
+    fi
+}
+
+function install_xerces()
+{
+    wget https://archive.apache.org/dist/xerces/c/3/sources/xerces-c-3.2.5.tar.gz
+    tar xzf xerces-c-3.2.5.tar.gz
+    cd xerces-c-3.2.5
+    mkdir -p build
+    cd build
+    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=${options[prefix]} -DCMAKE_BUILD_TYPE=Release -DICU_ROOT=${options[prefix]} .. \
+        && make -j${options[procuse]} \
+        && make install
+    # Check if build was successful, if so clean-up, otherwise exit
+    if test -f ${options[prefix]}/bin/XInclude
+    then
+        printf "Xerces install successful\n"
+    else
+        printf "Xerces install failed ... check logs\n"
+        exit 1
+    fi
+    if [ "${options[cleanup]}" = true ]
+    then
+        rm -rf xerces-c-3.2.5.tar.gz xerces-c-3.2.5
     fi
 }
 
