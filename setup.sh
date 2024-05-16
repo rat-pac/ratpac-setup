@@ -351,7 +351,7 @@ function install_cry()
     tar xzvf cry.tar.gz
     cd cry_v1.7
     # Lets hack things up a bit to get a shared library
-    sed -i 's/$//' src/Makefile
+    sed -i 's/^M$//' src/Makefile
     sed -i '25 i \\t$(CXX) -shared $(OBJ) -o ../lib/libCRY.so' src/Makefile
     sed -i 's/\-Wall/\-Wall \-fPIC/g' src/Makefile
     make -j1 # Race condition using multiple threads
@@ -424,6 +424,12 @@ function install_ratpac()
     # Install rat-pac
     source ${options[prefix]}/bin/thisroot.sh
     source ${options[prefix]}/bin/geant4.sh
+    if [[ -f "${options[prefix]}/lib/libCRY.so" ]];
+    then
+        export CRYLIB=${options[prefix]}/lib
+        export CRYINCLUDE=${options[prefix]}/include/cry
+        export CRYDATA=${options[prefix]}/data/cry
+    fi
     rm -rf ratpac
     git clone ${options[ratpac_repository]} ratpac
     cd ratpac
