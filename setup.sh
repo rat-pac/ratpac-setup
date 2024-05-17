@@ -3,10 +3,19 @@
 # Since system dependencies, especially on clusters, are a pain
 # Lets just pre-install everything (except GCC for now).
 
+
+
 exec > >(tee -i install.log)
 exec 2>&1
 
+handle_error() {
+    echo "An error occurred during the $1"
+    echo "The error occurred on line $2 of setup.sh"
+    exit 1
+}
+
 function install(){
+    trap 'handle_error "setup" $LINENO' ERR
     ## Array of installables
     declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "torch" "ratpac" "nlopt" "xerces" "icu")
     declare -A install_selection
@@ -297,6 +306,7 @@ function skip_check()
 ## Installation commands
 function install_cmake()
 {
+    trap 'handle_error "cmake install" $LINENO' ERR
     echo "Installing cmake..."
     git clone https://github.com/Kitware/CMake.git --single-branch --branch v3.22.0 cmake_src
     mkdir -p cmake_build
@@ -321,6 +331,7 @@ function install_cmake()
 
 function install_icu()
 {
+    trap 'handle_error "ICU install" $LINENO' ERR
     echo "Installing ICU..."
     wget https://github.com/unicode-org/icu/releases/download/release-74-2/icu4c-74_2-src.tgz
     tar xzf icu4c-74_2-src.tgz
@@ -345,6 +356,7 @@ function install_icu()
 
 function install_xerces()
 {
+    trap 'handle_error "xerces install" $LINENO' ERR
     echo "Installing xerces..."
     wget https://archive.apache.org/dist/xerces/c/3/sources/xerces-c-3.2.5.tar.gz
     tar xzf xerces-c-3.2.5.tar.gz
@@ -370,6 +382,7 @@ function install_xerces()
 
 function install_root()
 {
+    trap 'handle_error "root install" $LINENO' ERR
     echo "Installing ROOT..."
     git clone https://github.com/root-project/root.git --depth 1 --single-branch --branch ${options[root_branch]} root_src
     mkdir -p root_build
@@ -400,6 +413,7 @@ function install_root()
 
 function install_geant4()
 {
+    trap 'handle_error "geant4 install" $LINENO' ERR
     echo "Installing Geant4..."
     git clone https://github.com/geant4/geant4.git --depth 1 --single-branch --branch ${options[geant_branch]} geant_src
     mkdir -p geant_build
@@ -427,6 +441,7 @@ function install_geant4()
 
 function install_cry()
 {
+    trap 'handle_error "CRY install" $LINENO' ERR
     echo "Installing CRY..."
     # Install CRY for cosmogenics
     curl https://nuclear.llnl.gov/simulation/cry_v1.7.tar.gz --output cry.tar.gz
@@ -468,6 +483,7 @@ function install_cry()
 
 function install_tensorflow()
 {
+    trap 'handle_error "tensorflow install" $LINENO' ERR
     echo "Installing Tensorflow..."
     # Tensorflow: https://www.tensorflow.org/install/lang_c
     # CPU only or GPU support, listen for the --gpu command? Also if macos?
@@ -505,6 +521,7 @@ function install_tensorflow()
 
 function install_torch()
 {
+    trap 'handle_error "torch install" $LINENO' ERR
     echo "Installing torch..."
     # PyTorch library found at pytorch.org/get-started/locally
     # Use the GUI there to reveal the specific links
@@ -542,6 +559,7 @@ function install_torch()
 function install_ratpac()
 {
     # FIXME: need a solution to remove requirement to edit ratpac files with sed for mac installs 
+    trap 'handle_error "ratpac install" $LINENO' ERR
     echo "Installing ratpac..."
     # Install rat-pac
     source ${options[prefix]}/bin/thisroot.sh
@@ -587,6 +605,7 @@ include_directories(${options[prefix]}/include)" CMakeLists.txt
 
 function install_chroma()
 {
+    trap 'handle_error "chroma install" $LINENO' ERR
     echo "Installing chroma..."
     # Geant-4 pybind, special chroma branch
     #virtualenv pyrat
@@ -625,6 +644,7 @@ function install_chroma()
 
 function install_nlopt()
 {
+    trap 'handle_error "nlopt install" $LINENO' ERR
     echo "Installing nlopt..."
     git clone https://github.com/stevengj/nlopt.git
     pushd nlopt
