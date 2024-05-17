@@ -48,6 +48,7 @@ function install(){
     ## Tensorflow options
     enable_gpu=false
     enable_mac=false
+    enable_arm64=false  # for arm64 architectures (e.g. mac with silicon chip)
     cleanup=true
     boolOnly=false
     
@@ -98,6 +99,10 @@ function install(){
         then
             enable_mac=true
         fi
+        if [ $element == "--arm64" ]
+        then
+            enable_arm64=true
+        fi
     done
 
     # global options dictionary
@@ -137,7 +142,13 @@ function install(){
 
     if [ "${install_selection[tensorflow]}" = true ]
     then
-        install_tensorflow
+        if ${options[enable_arm64]}
+        then
+            echo "Tensorflow C does not support arm64. Skipping..."
+            echo "WARNING: Tensorflow will not be included in the installation"
+        else
+            install_tensorflow
+        fi
     fi
 
     if [ "${install_selection[torch]}" = true ]
@@ -286,6 +297,7 @@ function skip_check()
 ## Installation commands
 function install_cmake()
 {
+    echo "Installing cmake..."
     git clone https://github.com/Kitware/CMake.git --single-branch --branch v3.22.0 cmake_src
     mkdir -p cmake_build
     cd cmake_build
@@ -309,6 +321,7 @@ function install_cmake()
 
 function install_icu()
 {
+    echo "Installing ICU..."
     wget https://github.com/unicode-org/icu/releases/download/release-74-2/icu4c-74_2-src.tgz
     tar xzf icu4c-74_2-src.tgz
     cd icu/source
@@ -332,6 +345,7 @@ function install_icu()
 
 function install_xerces()
 {
+    echo "Installing xerces..."
     wget https://archive.apache.org/dist/xerces/c/3/sources/xerces-c-3.2.5.tar.gz
     tar xzf xerces-c-3.2.5.tar.gz
     cd xerces-c-3.2.5
@@ -341,7 +355,7 @@ function install_xerces()
         && make -j${options[procuse]} \
         && make install
     # Check if build was successful, if so clean-up, otherwise exit
-    if test -f ${options[prefix]}/bin/XInclude
+    if test -d ${options[prefix]}/include/xercesc
     then
         printf "Xerces install successful\n"
     else
@@ -356,10 +370,16 @@ function install_xerces()
 
 function install_root()
 {
+    echo "Installing ROOT..."
     git clone https://github.com/root-project/root.git --depth 1 --single-branch --branch ${options[root_branch]} root_src
     mkdir -p root_build
     cd root_build
-    cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} -D xrootd=OFF -D roofit=OFF -D minuit2=ON\
+    GLEW=""
+    if (${options[mac_enabled]})
+    then    
+        GLEW="-D builtin_glew=ON"
+    fi
+    cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} -D xrootd=OFF -D roofit=OFF -D minuit2=ON -D CMAKE_CXX_STANDARD=17 ${GLEW}\
             ../root_src \
         && make -j${options[procuse]} \
         && make install
@@ -380,6 +400,7 @@ function install_root()
 
 function install_geant4()
 {
+    echo "Installing Geant4..."
     git clone https://github.com/geant4/geant4.git --depth 1 --single-branch --branch ${options[geant_branch]} geant_src
     mkdir -p geant_build
     cd geant_build
@@ -406,14 +427,24 @@ function install_geant4()
 
 function install_cry()
 {
+    echo "Installing CRY..."
     # Install CRY for cosmogenics
     curl https://nuclear.llnl.gov/simulation/cry_v1.7.tar.gz --output cry.tar.gz
     tar xzvf cry.tar.gz
     cd cry_v1.7
     # Lets hack things up a bit to get a shared library
-    sed -i 's/^M$//' src/Makefile
-    sed -i '25 i \\t$(CXX) -shared $(OBJ) -o ../lib/libCRY.so' src/Makefile
-    sed -i 's/\-Wall/\-Wall \-fPIC/g' src/Makefile
+    # macs have a different format for sed
+    if ${options[enable_mac]}
+    then
+        sed -i '' 's/^M$//' src/Makefile
+        sed -i '' '25i\
+	$(CXX) -shared $(OBJ) -o ../lib/libCRY.so' src/Makefile
+        sed -i '' 's/\-Wall/\-Wall \-fPIC/g' src/Makefile
+    else
+        sed -i 's/^M$//' src/Makefile
+        sed -i '25 i \\t$(CXX) -shared $(OBJ) -o ../lib/libCRY.so' src/Makefile
+        sed -i 's/\-Wall/\-Wall \-fPIC/g' src/Makefile
+    fi
     make -j1 # Race condition using multiple threads
     mkdir -p ${options[prefix]}/data/cry
     mv data/* ${options[prefix]}/data/cry
@@ -422,6 +453,13 @@ function install_cry()
     mkdir -p ${options[prefix]}/include/cry
     cp src/*.h ${options[prefix]}/include/cry
     cd ../
+    if test -f ${options[prefix]}/lib/libCRY.so
+    then
+        printf "CRY install successful\n"
+    else
+        printf "CRY install failed ... check logs\n"
+        exit 1
+    fi
     if [ "${options[cleanup]}" = true ]
     then
         rm -r cry_v1.7 cry.tar.gz
@@ -430,6 +468,7 @@ function install_cry()
 
 function install_tensorflow()
 {
+    echo "Installing Tensorflow..."
     # Tensorflow: https://www.tensorflow.org/install/lang_c
     # CPU only or GPU support, listen for the --gpu command? Also if macos?
     # Updated 2021-08-10
@@ -451,11 +490,22 @@ function install_tensorflow()
 
     git clone https://github.com/serizba/cppflow.git
     cp -r cppflow/include/cppflow ${options[prefix]}/include
-    rm -rf tensorflow.tar.gz cppflow
+    if (test -d ${options[prefix]}/include/tensorflow && test -d ${options[prefix]}/include/cppflow)
+    then
+        printf "Tensorflow install successful\n"
+    else
+        printf "Tensorflow install failed ... check logs\n"
+        exit 1
+    fi
+    if [ "${options[cleanup]}" = true ]
+    then
+        rm -rf tensorflow.tar.gz cppflow
+    fi
 }
 
 function install_torch()
 {
+    echo "Installing torch..."
     # PyTorch library found at pytorch.org/get-started/locally
     # Use the GUI there to reveal the specific links
     # Updated 2021-08-10
@@ -476,11 +526,23 @@ function install_torch()
     curl $tfurl --output torch.zip
     unzip torch.zip -d torch
     cp -r torch/libtorch/* ${options[prefix]}
-    rm -rf torch.zip torch
+    if test -d ${options[prefix]}/include/torch
+    then
+        printf "Torch install successful\n"
+    else
+        printf "Torch install failed ... check logs\n"
+        exit 1
+    fi
+    if [ "${options[cleanup]}" = true ]
+    then
+        rm -rf torch.zip torch
+    fi
 }
 
 function install_ratpac()
 {
+    # FIXME: need a solution to remove requirement to edit ratpac files with sed for mac installs 
+    echo "Installing ratpac..."
     # Install rat-pac
     source ${options[prefix]}/bin/thisroot.sh
     source ${options[prefix]}/bin/geant4.sh
@@ -493,8 +555,26 @@ function install_ratpac()
     rm -rf ratpac
     git clone ${options[ratpac_repository]} ratpac
     cd ratpac
-    make -j${options[procuse]} && source ./ratpac.sh
-    # Check if ratpac was successful, if so clean-up, otherwise exit
+    if ${options[arm64_enabled]}
+    then
+        sed -i '' 's/x86_64/arm64/g' CMakeLists.txt
+    fi
+    if ${options[mac_enabled]}
+    then
+        sed -i '' 's/.*Wno-terminate.*//g' CMakeLists.txt
+        sed -i '' 's/\.so/.dylib/g' config/RatpacConfig.cmake.in
+        sed -i '' "36 i\\
+set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${options[prefix]}/lib)\\
+include_directories(${options[prefix]}/include)" CMakeLists.txt
+        sed -i '' '11 i\
+#include <RAT/Processor.hh>' src/core/include/RAT/ProcAllocator.hh
+    fi
+    # avoid using default Makefile as it lacks portability for different OSs
+    # make -j${options[procuse]} && source ./ratpac.sh
+    mkdir -p build && cd build 
+    cmake -DXercesC_INCLUDE_DIR=${options[prefix]}/include -DXercesC_LIBRARY=${options[prefix]}/lib/libxerces-c.dylib -DCMAKE_INSTALL_PREFIX=../install ..
+    make && make install && cd .. && source ./ratpac.sh
+    # Check if ratpac was successful, otherwise exit
     if test -f build/bin/rat
     then
         printf "Ratpac install successful\n"
@@ -502,11 +582,12 @@ function install_ratpac()
         printf "Ratpac install failed ... check logs\n"
         exit 1
     fi
-    cd ../
+    cd ../..
 }
 
 function install_chroma()
 {
+    echo "Installing chroma..."
     # Geant-4 pybind, special chroma branch
     #virtualenv pyrat
     #source pyrat/bin/activate
@@ -527,19 +608,40 @@ function install_chroma()
     cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} ../libzmq_src
     make -j${options[procuse]} install
     popd
-    rm -rf libzmq_src libzmq_build
 
+    if test -f ${options[prefix]}/lib*/libzmq.a
+    then
+        printf "Chroma install successful\n"
+    else
+        printf "Chroma install failed ... check logs\n"
+        exit 1
+    fi
+    if [ "${options[cleanup]}" = true ]
+    then
+        rm -rf libzmq_src libzmq_build
+    fi
 
 }
 
 function install_nlopt()
 {
+    echo "Installing nlopt..."
     git clone https://github.com/stevengj/nlopt.git
     pushd nlopt
     cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} . -Bbuild
     cmake --build build --target install
     popd
-    rm -rf nlopt
+    if test -f ${options[prefix]}/include/nlopt.h
+    then
+        printf "Nlopt install successful\n"
+    else
+        printf "Nlopt install failed ... check logs\n"
+        exit 1
+    fi
+    if [ "${options[cleanup]}" = true ]
+    then
+        rm -rf nlopt
+    fi
 }
 
 
