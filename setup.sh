@@ -9,8 +9,8 @@ exec > >(tee -i install.log)
 exec 2>&1
 
 handle_error() {
-    echo "An error occurred during the $1"
-    echo "The error occurred on line $2 of setup.sh"
+    echo "*** An error occurred during the $1"
+    echo "*** The error occurred on line $2 of setup.sh"
     exit 1
 }
 
@@ -180,7 +180,8 @@ function install(){
         install_ratpac
     fi
 
-    if [[ -f "$prefix/lib/libCRY.so" ]];
+    trap 'handle_error "post installation tasks" $LINENO' ERR
+    if test -f $prefix/lib/libCRY.so
     then
         printf "export CRYLIB=$prefix/lib\n" >> $outfile
         printf "export CRYINCLUDE=$prefix/include/cry\n" >> $outfile
