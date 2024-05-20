@@ -367,6 +367,7 @@ function install_xerces()
     cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=${options[prefix]} -DCMAKE_BUILD_TYPE=Release -DICU_ROOT=${options[prefix]} .. \
         && make -j${options[procuse]} \
         && make install
+    cd ../..
     # Check if build was successful, if so clean-up, otherwise exit
     if test -d ${options[prefix]}/include/xercesc
     then
