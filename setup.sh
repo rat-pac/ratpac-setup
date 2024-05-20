@@ -49,8 +49,10 @@ function install(){
     mkdir -p $prefix/bin
     export PATH=$prefix/bin:$PATH
     export LD_LIBRARY_PATH=$prefix/lib:$LD_LIBRARY_PATH
+    export DYLD_LIBRARY_PATH=$prefix/lib:$DYLD_LIBRARY_PATH
     printf "export PATH=$prefix/bin:\$PATH\n" > $outfile
     printf "export LD_LIBRARY_PATH=$prefix/lib:\$LD_LIBRARY_PATH\n" >> $outfile
+    printf "export DYLD_LIBRARY_PATH=$prefix/lib:\$DYLD_LIBRARY_PATH\n" >> $outfile
     printf "export CC=$CC\n" >> $outfile
     printf "export CXX=$CXX\n" >> $outfile
 
