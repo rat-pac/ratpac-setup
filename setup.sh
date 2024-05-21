@@ -594,7 +594,12 @@ include_directories(${options[prefix]}/include)" CMakeLists.txt
     # avoid using default Makefile as it lacks portability for different OSs
     # make -j${options[procuse]} && source ./ratpac.sh
     mkdir -p build && cd build 
-    cmake -DXercesC_INCLUDE_DIR=${options[prefix]}/include -DXercesC_LIBRARY=${options[prefix]}/lib/libxerces-c.dylib -DCMAKE_INSTALL_PREFIX=../install ..
+    if ${options[mac_enabled]}
+    then
+        cmake -DXercesC_INCLUDE_DIR=${options[prefix]}/include -DXercesC_LIBRARY=${options[prefix]}/lib/libxerces-c.dylib -DCMAKE_INSTALL_PREFIX=../install ..
+    else
+        cmake -DXercesC_INCLUDE_DIR=${options[prefix]}/include -DXercesC_LIBRARY=${options[prefix]}/lib*/libxerces-c.so -DCMAKE_INSTALL_PREFIX=../install ..
+    fi
     make && make install && cd .. && source ./ratpac.sh
     # Check if ratpac was successful, otherwise exit
     if test -f build/bin/rat
