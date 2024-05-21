@@ -428,12 +428,12 @@ function install_geant4()
     then
         LIBSUFFIX="dylib"
     fi
-    ../local/bin/cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} ../geant_src -DGEANT4_BUILD_EXPAT=OFF \
+    cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} ../geant_src -DGEANT4_BUILD_EXPAT=OFF \
         -DGEANT4_BUILD_MULTITHREADED=OFF -DGEANT4_USE_QT=ON -DGEANT4_INSTALL_DATA=ON \
         -DGEANT4_BUILD_TLS_MODEL=global-dynamic \
         -DGEANT4_INSTALL_DATA_TIMEOUT=15000 -DGEANT4_USE_GDML=ON \
-        -DXercesC_INCLUDE_DIR=${options[prefix]}/include -DXercesC_LIBRARY_RELEASE=${options[prefix]}/lib/libxerces-c.${LIBSUFFIX} \
-        && make -j${options[procuse]} \
+        -DXercesC_INCLUDE_DIR=${options[prefix]}/include -DXercesC_LIBRARY_RELEASE=${options[prefix]}/lib/libxerces-c.${LIBSUFFIX} 
+    make -j${options[procuse]} \
         && make install
     cd ../
     # Check if g4 was successful, if so clean-up, otherwise exit
