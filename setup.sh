@@ -366,7 +366,7 @@ function install_xerces()
     cd xerces-c-3.2.5
     mkdir -p build
     cd build
-    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=${options[prefix]} -DCMAKE_BUILD_TYPE=Release -DICU_ROOT=${options[prefix]} .. \
+    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=${options[prefix]} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_BUILD_TYPE=Release -DICU_ROOT=${options[prefix]} .. \
         && make -j${options[procuse]} \
         && make install
     cd ../..
@@ -392,7 +392,7 @@ function install_root()
     mkdir -p root_build
     cd root_build
     GLEW=""
-    if (${options[mac_enabled]})
+    if ${options[mac_enabled]}
     then    
         GLEW="-D builtin_glew=ON"
     fi
@@ -422,10 +422,16 @@ function install_geant4()
     git clone https://github.com/geant4/geant4.git --depth 1 --single-branch --branch ${options[geant_branch]} geant_src
     mkdir -p geant_build
     cd geant_build
+    LIBSUFFIX="so"
+    if ${options[enable_mac]}
+    then
+        LIBSUFFIX="dylib"
+    fi
     cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} ../geant_src -DGEANT4_BUILD_EXPAT=OFF \
         -DGEANT4_BUILD_MULTITHREADED=OFF -DGEANT4_USE_QT=ON -DGEANT4_INSTALL_DATA=ON \
         -DGEANT4_BUILD_TLS_MODEL=global-dynamic \
         -DGEANT4_INSTALL_DATA_TIMEOUT=15000 -DGEANT4_USE_GDML=ON \
+        -DXercesC_INCLUDE_DIR=${options[prefix]}/include -DXercesC_LIBRARY=${options[prefix]}/lib/libxerces-c.${LIBSUFFIX} \
         && make -j${options[procuse]} \
         && make install
     cd ../
@@ -594,15 +600,15 @@ include_directories(${options[prefix]}/include)" CMakeLists.txt
     # avoid using default Makefile as it lacks portability for different OSs
     # make -j${options[procuse]} && source ./ratpac.sh
     mkdir -p build && cd build 
-    if ${options[mac_enabled]}
+    LIBSUFFIX="so"
+    if ${options[enable_mac]}
     then
-        cmake -DXercesC_INCLUDE_DIR=${options[prefix]}/include -DXercesC_LIBRARY=${options[prefix]}/lib/libxerces-c.dylib -DCMAKE_INSTALL_PREFIX=../install ..
-    else
-        cmake -DXercesC_INCLUDE_DIR=${options[prefix]}/include -DXercesC_LIBRARY=${options[prefix]}/lib*/libxerces-c.so -DCMAKE_INSTALL_PREFIX=../install ..
+        LIBSUFFIX="dylib"
     fi
+    cmake -DXercesC_INCLUDE_DIR=${options[prefix]}/include -DXercesC_LIBRARY=${options[prefix]}/lib/libxerces-c.${LIBSUFFIX} -DCMAKE_INSTALL_PREFIX=../install ..
     make && make install && cd .. && source ./ratpac.sh
     # Check if ratpac was successful, otherwise exit
-    if test -f build/bin/rat
+    if test -f install/bin/rat
     then
         printf "Ratpac install successful\n"
     else
