@@ -608,7 +608,7 @@ include_directories(${options[prefix]}/include)" CMakeLists.txt
     then
         LIBSUFFIX="dylib"
     fi
-    cmake -DXercesC_INCLUDE_DIR=${options[prefix]}/include -DXercesC_LIBRARY=${options[prefix]}/lib/libxerces-c.${LIBSUFFIX} -DCMAKE_INSTALL_PREFIX=../install ..
+    cmake -DXercesC_INCLUDE_DIR=${options[prefix]}/include -DXercesC_LIBRARY_RELEASE=${options[prefix]}/lib/libxerces-c.${LIBSUFFIX} -DCMAKE_INSTALL_PREFIX=../install ..
     make && make install && cd .. && source ./ratpac.sh
     # Check if ratpac was successful, otherwise exit
     if test -f install/bin/rat
