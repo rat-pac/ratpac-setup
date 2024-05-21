@@ -17,6 +17,8 @@ you do not wish to reinstall, though do note you will have to properly link
 them in that case (ROOT / Geant-4).
 
 - CMake v3.22.0+
+- ICU4C 74.2
+- Xerces-C 3.2.5
 - Python 3.x.x
 - Root 6.25+
 - Geant-4 11.0
