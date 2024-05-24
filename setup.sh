@@ -152,7 +152,7 @@ function install(){
 
     if [ "${install_selection[tensorflow]}" = true ]
     then
-        if ${options[enable_arm64]}
+        if [ "${options[enable_arm64]}" = true ]
         then
             echo "Tensorflow C does not support arm64. Skipping..."
             echo "WARNING: Tensorflow will not be included in the installation"
@@ -584,7 +584,7 @@ function install_ratpac()
     rm -rf ratpac
     git clone "${options[ratpac_repository]}" ratpac
     cd ratpac || exit 1
-    if ${options[arm64_enabled]}
+    if [ "${options[arm64_enabled]}" = true ]
     then
         sed -i '' 's/x86_64/arm64/g' CMakeLists.txt
     fi
