@@ -351,7 +351,7 @@ function install_icu()
     tar xzf icu4c-74_2-src.tgz
     cd icu/source || exit 1
     chmod +x runConfigureICU configure install-sh
-    export CPPFLAGS="-std=c++17"
+    export CXXFLAGS="-std=c++17"
     ./configure --prefix="${options[prefix]}"
     make -j"${options[procuse]}" && make install
     cd ../..
