@@ -594,7 +594,7 @@ function install_ratpac()
         sed -i '' 's/.*Wno-terminate.*//g' CMakeLists.txt
         sed -i '' 's/\.so/.dylib/g' config/RatpacConfig.cmake.in
         sed -i '' "36 i\\
-set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${options[prefix]}/lib)\\
+set(CMAKE_LIBRARY_PATH \${CMAKE_LIBRARY_PATH} ${options[prefix]}/lib)\\
 include_directories(${options[prefix]}/include)" CMakeLists.txt
         sed -i '' '11 i\
 #include <RAT/Processor.hh>' src/core/include/RAT/ProcAllocator.hh
