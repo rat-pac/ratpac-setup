@@ -589,7 +589,7 @@ function install_ratpac()
     then
         sed -i '' 's/x86_64/arm64/g' CMakeLists.txt
     fi
-    if ${options[mac_enabled]}
+    if [ "${options[mac_enabled]}" = true ]
     then
         sed -i '' 's/.*Wno-terminate.*//g' CMakeLists.txt
         sed -i '' 's/\.so/.dylib/g' config/RatpacConfig.cmake.in
