@@ -3,8 +3,6 @@
 # Since system dependencies, especially on clusters, are a pain
 # Lets just pre-install everything (except GCC for now).
 
-
-
 exec > >(tee -i install.log)
 exec 2>&1
 
@@ -28,12 +26,9 @@ function install(){
     geant_branch="v11.1.2"
     ratpac_repository="https://github.com/rat-pac/ratpac-two.git"
 
-    help $@
-    procuse=$(getnproc $@)
+    help "$@"
+    procuse=$(getnproc "$@")
     # End testing
-    export CC=$(command -v gcc)
-    export CXX=$(command -v g++)
-
     # Check requirements; Git && GCC
     if ! [ -x "$(command -v gcc)" ]; then
         echo "gcc not installed"
@@ -43,18 +38,22 @@ function install(){
         echo "git not installed"
         exit 1
     fi
+    CC=$(command -v gcc)
+    export CC
+    CXX=$(command -v g++)
+    export CXX
 
     outfile="env.sh"
     prefix=$(pwd -P)/local
-    mkdir -p $prefix/bin
+    mkdir -p "${prefix}"/bin
     export PATH=$prefix/bin:$PATH
     export LD_LIBRARY_PATH=$prefix/lib:$LD_LIBRARY_PATH
     export DYLD_LIBRARY_PATH=$prefix/lib:$DYLD_LIBRARY_PATH
-    printf "export PATH=$prefix/bin:\$PATH\n" > $outfile
-    printf "export LD_LIBRARY_PATH=$prefix/lib:\$LD_LIBRARY_PATH\n" >> $outfile
-    printf "export DYLD_LIBRARY_PATH=$prefix/lib:\$DYLD_LIBRARY_PATH\n" >> $outfile
-    printf "export CC=$CC\n" >> $outfile
-    printf "export CXX=$CXX\n" >> $outfile
+    printf 'export PATH=%s/bin:$PATH\n' "$prefix" > $outfile
+    printf 'export LD_LIBRARY_PATH=%s/lib:$LD_LIBRARY_PATH\n' "$prefix" >> $outfile
+    printf 'export DYLD_LIBRARY_PATH=%s/lib:$DYLD_LIBRARY_PATH\n' "$prefix" >> $outfile
+    printf 'export CC=%s\n' "$CC" >> $outfile
+    printf 'export CXX=%s\n' "$CXX" >> $outfile
 
     ## Tensorflow options
     enable_gpu=false
@@ -62,55 +61,55 @@ function install(){
     enable_arm64=false  # for arm64 architectures (e.g. mac with silicon chip)
     cleanup=true
     boolOnly=false
-    
-    for element in $@;
+
+    for element in "$@"
     do
         if [ "$skipping" = true ]
         then
             # Check if element in install_options
-            if [[ " ${install_options[@]} " =~ " ${element} " ]]
-            then
-                install_selection[$element]=false
-            fi
+            for option in "${install_options[@]}"
+            do
+                [[ "${option}" =~ ${element} ]] && install_selection[$element]=false
+            done
         fi
-        if [ $element == "--skip" ]
+        if [ "$element" == "--skip" ]
         then
             skipping=true;
         fi
     done
     
-    for element in $@;
+    for element in "$@"
     do
         if [ "$boolOnly" = true ]
         then
-            if [[ " ${install_options[@]} " =~ " ${element} " ]]
-            then
-                install_selection[$element]=true
-            fi
+            for option in "${install_options[@]}"
+            do
+                [[  "${option}" =~ ${element} ]] && install_selection[$element]=true
+            done
         fi
-        if [ $element == "--only" ]
+        if [ "$element" == "--only" ]
         then
             # Only will overwrite the skipping rules
             boolOnly=true
             # Set all to false
-            for element in "${install_options[@]}"
+            for el in "${install_options[@]}"
             do
-                install_selection[$element]=false
+                install_selection[$el]=false
             done
         fi
-        if [ $element == "--noclean" ]
+        if [ "$element" == "--noclean" ]
         then
             cleanup=false
         fi
-        if [ $element == "--gpu" ]
+        if [ "$element" == "--gpu" ]
         then
             enable_gpu=true
         fi
-        if [ $element == "--mac" ]
+        if [ "$element" == "--mac" ]
         then
             enable_mac=true
         fi
-        if [ $element == "--arm64" ]
+        if [ "$element" == "--arm64" ]
         then
             enable_arm64=true
         fi
@@ -183,15 +182,15 @@ function install(){
     fi
 
     trap 'handle_error "post installation tasks" $LINENO' ERR
-    if test -f $prefix/lib/libCRY.so
+    if test -f "$prefix"/lib/libCRY.so
     then
-        printf "export CRYLIB=$prefix/lib\n" >> $outfile
-        printf "export CRYINCLUDE=$prefix/include/cry\n" >> $outfile
-        printf "export CRYDATA=$prefix/data/cry\n" >> $outfile
+        printf 'export CRYLIB=%s/lib\n' "$prefix" >> $outfile
+        printf 'export CRYINCLUDE=%s/include/cry\n' "$prefix" >> $outfile
+        printf 'export CRYDATA=%s/data/cry\n' "$prefix" >> $outfile
     fi
-    printf "pushd $prefix/bin 2>&1 >/dev/null\nsource thisroot.sh\nsource geant4.sh\npopd 2>&1 >/dev/null\n" >> $outfile
-    printf "if [ -f \"$prefix/../ratpac/ratpac.sh\" ]; then\nsource $prefix/../ratpac/ratpac.sh\nfi\n" >> $outfile
-    printf "if [ -f \"$prefix/../pyrat/bin/activate\" ]; then\nsource $prefix/../pyrat/bin/activate\nfi\n" >> $outfile
+    printf 'pushd %s/bin 2>&1 >/dev/null\nsource thisroot.sh\nsource geant4.sh\npopd 2>&1 >/dev/null\n' "$prefix" >> $outfile
+    printf 'if [ -f "%s/../ratpac/ratpac.sh" ]; then\nsource %s/../ratpac/ratpac.sh\nfi\n' "$prefix" "$prefix" >> $outfile
+    printf 'if [ -f "%s/../pyrat/bin/activate" ]; then\nsource %s/../pyrat/bin/activate\nfi\n' "$prefix" "$prefix" >> $outfile
     echo "Done"
 }
 
@@ -202,7 +201,7 @@ function help()
         ["gpu"]="Enable GPU support for tensorflow" \
         ["mac"]="Enable Mac support" \
         ["noclean"]="Do not clean up after install")
-    for element in $@
+    for element in "$@"
     do
         if [[ $element =~ "-h" ]];
         then
@@ -212,7 +211,7 @@ function help()
             printf "\n\nOptions\n"
             for key in "${!help_options[@]}"
             do
-                printf "%-20s%-20s\n" --$key "${help_options[$key]}"
+                printf "%-20s%-20s\n" "--$key" "${help_options[$key]}"
             done
             exit 0
         fi
@@ -222,19 +221,19 @@ function help()
 function getnproc()
 {
     local nproc=1
-    for element in $@
+    for element in "$@"
     do
         if [[ $element =~ "-j" ]];
         then
-            nproc=$(echo $element | sed -e 's/-j//g')
+            nproc=${element/-j/}
         fi
     done
-    echo $nproc
+    echo "$nproc"
 }
 
 function command_exists()
 {
-    if (command -v $1 > /dev/null )
+    if (command -v "$1" > /dev/null )
     then
         true
     else
@@ -248,13 +247,13 @@ function check_deps()
     # Before trying to install anything, confirm a list of dependencies
     echo "Checking list of dependencies ..."
     cmds=(gcc openssl curl)
-    for c in ${cmds[@]}
+    for c in "${cmds[@]}"
     do
-        if command_exists $c
+        if command_exists "$c"
         then
-            printf "%-30s%-20s\n" $c "Installed"
+            printf "%-30s%-20s\n" "$c" "Installed"
         else
-            printf "%-30s%-20s\n" $c "NOT AVAILABLE"
+            printf "%-30s%-20s\n" "$c" "NOT AVAILABLE"
             bool=false
         fi
     done
@@ -263,16 +262,16 @@ function check_deps()
     if ${options[enable_mac]}
     then
         echo "MacOS install. Required libaries will not be checked."
-        echo "Please ensure ${libraries[@]} are installed on your system."
+        echo "Please ensure " "${libraries[@]}" "are installed on your system."
     else
         echo "Checking for libraries ..."
-        for lb in ${libraries[@]}
+        for lb in "${libraries[@]}"
         do
-            if check_lib $lb
+            if check_lib "$lb"
             then
-                printf "%-30s%-20s\n" $lb "Installed"
+                printf "%-30s%-20s\n" "$lb" "Installed"
             else
-                printf "%-30s%-20s\n" $lb "NOT AVAILABLE"
+                printf "%-30s%-20s\n" "$lb" "NOT AVAILABLE"
                 bool=false
             fi
         done
@@ -284,7 +283,7 @@ function check_deps()
 
 function check_lib()
 {
-    if (ldconfig -p | grep -q $1)
+    if (ldconfig -p | grep -q "$1")
     then
         true
     else
@@ -295,7 +294,7 @@ function check_lib()
 function skip_check()
 {
     bool=false
-    for elem in $@
+    for elem in "$@"
     do
         if [[ $elem = "--skip-checks" ]];
         then
@@ -313,13 +312,13 @@ function install_cmake()
     echo "Installing cmake..."
     git clone https://github.com/Kitware/CMake.git --single-branch --branch v3.22.0 cmake_src
     mkdir -p cmake_build
-    cd cmake_build
+    cd cmake_build || exit 1
     ../cmake_src/bootstrap --prefix=../local \
-        && make -j${options[procuse]} \
+        && make -j"${options[procuse]}" \
         && make install
     cd ../
     # Check if cmake was successful, if so clean-up, otherwise exit
-    if test -f ${options[prefix]}/bin/cmake
+    if test -f "${options[prefix]}"/bin/cmake
     then
         printf "Cmake install successful\n"
     else
@@ -338,14 +337,14 @@ function install_icu()
     echo "Installing ICU..."
     wget https://github.com/unicode-org/icu/releases/download/release-74-2/icu4c-74_2-src.tgz
     tar xzf icu4c-74_2-src.tgz
-    cd icu/source
+    cd icu/source || exit 1
     chmod +x runConfigureICU configure install-sh
     export CPPFLAGS="-std=c++17"
-    ./configure --prefix=${options[prefix]}
-    make -j${options[procuse]} && make install
+    ./configure --prefix="${options[prefix]}"
+    make -j"${options[procuse]}" && make install
     cd ../..
     # Check if cmake was successful, if so clean-up, otherwise exit
-    if test -f ${options[prefix]}/bin/icu-config
+    if test -f "${options[prefix]}"/bin/icu-config
     then
         printf "ICU install successful\n"
     else
@@ -364,15 +363,15 @@ function install_xerces()
     echo "Installing xerces..."
     wget https://archive.apache.org/dist/xerces/c/3/sources/xerces-c-3.2.5.tar.gz
     tar xzf xerces-c-3.2.5.tar.gz
-    cd xerces-c-3.2.5
+    cd xerces-c-3.2.5 || exit 1
     mkdir -p build
-    cd build
-    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=${options[prefix]} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_BUILD_TYPE=Release -DICU_ROOT=${options[prefix]} .. \
-        && make -j${options[procuse]} \
+    cd build || exit 1
+    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="${options[prefix]}" -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_BUILD_TYPE=Release -DICU_ROOT="${options[prefix]}" .. \
+        && make -j"${options[procuse]}" \
         && make install
     cd ../..
     # Check if build was successful, if so clean-up, otherwise exit
-    if test -d ${options[prefix]}/include/xercesc
+    if test -d "${options[prefix]}"/include/xercesc
     then
         printf "Xerces install successful\n"
     else
@@ -389,21 +388,21 @@ function install_root()
 {
     trap 'handle_error "root install" $LINENO' ERR
     echo "Installing ROOT..."
-    git clone https://github.com/root-project/root.git --depth 1 --single-branch --branch ${options[root_branch]} root_src
+    git clone https://github.com/root-project/root.git --depth 1 --single-branch --branch "${options[root_branch]}" root_src
     mkdir -p root_build
-    cd root_build
+    cd root_build || exit 1
     GLEW=""
     if ${options[mac_enabled]}
     then    
         GLEW="-D builtin_glew=ON"
     fi
-    cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} -D xrootd=OFF -D roofit=OFF -D minuit2=ON -D CMAKE_CXX_STANDARD=17 ${GLEW}\
+    cmake -DCMAKE_INSTALL_PREFIX="${options[prefix]}" -D xrootd=OFF -D roofit=OFF -D minuit2=ON -D CMAKE_CXX_STANDARD=17 "${GLEW}"\
             ../root_src \
-        && make -j${options[procuse]} \
+        && make -j"${options[procuse]}" \
         && make install
     cd ../
     # Check if root was successful, if so clean-up, otherwise exit
-    if test -f ${options[prefix]}/bin/root
+    if test -f "${options[prefix]}"/bin/root
     then
         printf "Root install successful\n"
     else
@@ -420,24 +419,24 @@ function install_geant4()
 {
     trap 'handle_error "geant4 install" $LINENO' ERR
     echo "Installing Geant4..."
-    git clone https://github.com/geant4/geant4.git --depth 1 --single-branch --branch ${options[geant_branch]} geant_src
+    git clone https://github.com/geant4/geant4.git --depth 1 --single-branch --branch "${options[geant_branch]}" geant_src
     mkdir -p geant_build
-    cd geant_build
+    cd geant_build || exit 1
     LIBSUFFIX="so"
     if ${options[enable_mac]}
     then
         LIBSUFFIX="dylib"
     fi
-    cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} ../geant_src -DGEANT4_BUILD_EXPAT=OFF \
+    cmake -DCMAKE_INSTALL_PREFIX="${options[prefix]}" ../geant_src -DGEANT4_BUILD_EXPAT=OFF \
         -DGEANT4_BUILD_MULTITHREADED=OFF -DGEANT4_USE_QT=ON -DGEANT4_INSTALL_DATA=ON \
         -DGEANT4_BUILD_TLS_MODEL=global-dynamic \
         -DGEANT4_INSTALL_DATA_TIMEOUT=15000 -DGEANT4_USE_GDML=ON \
-        -DXercesC_INCLUDE_DIR=${options[prefix]}/include -DXercesC_LIBRARY_RELEASE=${options[prefix]}/lib/libxerces-c.${LIBSUFFIX} 
-    make -j${options[procuse]} \
+        -DXercesC_INCLUDE_DIR="${options[prefix]}"/include -DXercesC_LIBRARY_RELEASE="${options[prefix]}"/lib/libxerces-c."${LIBSUFFIX}" 
+    make -j"${options[procuse]}" \
         && make install
     cd ../
     # Check if g4 was successful, if so clean-up, otherwise exit
-    if test -f ${options[prefix]}/bin/geant4-config
+    if test -f "${options[prefix]}"/bin/geant4-config
     then
         printf "G4 install successful\n"
     else
@@ -457,31 +456,29 @@ function install_cry()
     # Install CRY for cosmogenics
     curl https://nuclear.llnl.gov/simulation/cry_v1.7.tar.gz --output cry.tar.gz
     tar xzvf cry.tar.gz
-    cd cry_v1.7
+    cd cry_v1.7 || exit 1
     # Lets hack things up a bit to get a shared library
     # macs have a different format for sed
     if ${options[enable_mac]}
     then
-        sed -i '' 's/
-$//' src/Makefile
+        sed -i '' 's/$//' src/Makefile
         sed -i '' '25i\
 	$(CXX) -shared $(OBJ) -o ../lib/libCRY.so' src/Makefile
         sed -i '' 's/\-Wall/\-Wall \-fPIC/g' src/Makefile
     else
-        sed -i 's/
-$//' src/Makefile
+        sed -i 's/$//' src/Makefile
         sed -i '25 i \\t$(CXX) -shared $(OBJ) -o ../lib/libCRY.so' src/Makefile
         sed -i 's/\-Wall/\-Wall \-fPIC/g' src/Makefile
     fi
     make -j1 # Race condition using multiple threads
-    mkdir -p ${options[prefix]}/data/cry
-    mv data/* ${options[prefix]}/data/cry
+    mkdir -p "${options[prefix]}"/data/cry
+    mv data/* "${options[prefix]}"/data/cry
     # "Make install"
-    mv lib/libCRY.so ${options[prefix]}/lib
-    mkdir -p ${options[prefix]}/include/cry
-    cp src/*.h ${options[prefix]}/include/cry
+    mv lib/libCRY.so "${options[prefix]}"/lib
+    mkdir -p "${options[prefix]}"/include/cry
+    cp src/*.h "${options[prefix]}"/include/cry
     cd ../
-    if test -f ${options[prefix]}/lib/libCRY.so
+    if test -f "${options[prefix]}"/lib/libCRY.so
     then
         printf "CRY install successful\n"
     else
@@ -515,11 +512,11 @@ function install_tensorflow()
         tfurl=$macCPU
     fi
     curl $tfurl --output tensorflow.tar.gz
-    tar -C ${options[prefix]} -xzf tensorflow.tar.gz
+    tar -C "${options[prefix]}" -xzf tensorflow.tar.gz
 
     git clone https://github.com/serizba/cppflow.git
-    cp -r cppflow/include/cppflow ${options[prefix]}/include
-    if (test -d ${options[prefix]}/include/tensorflow && test -d ${options[prefix]}/include/cppflow)
+    cp -r cppflow/include/cppflow "${options[prefix]}"/include
+    if test -d "${options[prefix]}"/include/tensorflow && test -d "${options[prefix]}"/include/cppflow
     then
         printf "Tensorflow install successful\n"
     else
@@ -555,8 +552,8 @@ function install_torch()
 
     curl $tfurl --output torch.zip
     unzip torch.zip -d torch
-    cp -r torch/libtorch/* ${options[prefix]}
-    if test -d ${options[prefix]}/include/torch
+    cp -r torch/libtorch/* "${options[prefix]}"
+    if test -d "${options[prefix]}"/include/torch
     then
         printf "Torch install successful\n"
     else
@@ -575,17 +572,17 @@ function install_ratpac()
     trap 'handle_error "ratpac install" $LINENO' ERR
     echo "Installing ratpac..."
     # Install rat-pac
-    source ${options[prefix]}/bin/thisroot.sh
-    source ${options[prefix]}/bin/geant4.sh
-    if [[ -f "${options[prefix]}/lib/libCRY.so" ]];
+    source "${options[prefix]}"/bin/thisroot.sh
+    source "${options[prefix]}"/bin/geant4.sh
+    if [[ -f "${options[prefix]}"/lib/libCRY.so ]];
     then
-        export CRYLIB=${options[prefix]}/lib
-        export CRYINCLUDE=${options[prefix]}/include/cry
-        export CRYDATA=${options[prefix]}/data/cry
+        export CRYLIB="${options[prefix]}"/lib
+        export CRYINCLUDE="${options[prefix]}"/include/cry
+        export CRYDATA="${options[prefix]}"/data/cry
     fi
     rm -rf ratpac
-    git clone ${options[ratpac_repository]} ratpac
-    cd ratpac
+    git clone "${options[ratpac_repository]}" ratpac
+    cd ratpac || exit 1
     if ${options[arm64_enabled]}
     then
         sed -i '' 's/x86_64/arm64/g' CMakeLists.txt
@@ -602,13 +599,13 @@ include_directories(${options[prefix]}/include)" CMakeLists.txt
     fi
     # avoid using default Makefile as it lacks portability for different OSs
     # make -j${options[procuse]} && source ./ratpac.sh
-    mkdir -p build && cd build 
+    mkdir -p build && (cd build || exit 1)
     LIBSUFFIX="so"
     if ${options[enable_mac]}
     then
         LIBSUFFIX="dylib"
     fi
-    cmake -DXercesC_INCLUDE_DIR=${options[prefix]}/include -DXercesC_LIBRARY_RELEASE=${options[prefix]}/lib/libxerces-c.${LIBSUFFIX} -DCMAKE_INSTALL_PREFIX=../install ..
+    cmake -DXercesC_INCLUDE_DIR="${options[prefix]}"/include -DXercesC_LIBRARY_RELEASE="${options[prefix]}"/lib/libxerces-c."${LIBSUFFIX}" -DCMAKE_INSTALL_PREFIX=../install ..
     make && make install && cd .. && source ./ratpac.sh
     # Check if ratpac was successful, otherwise exit
     if test -f install/bin/rat
@@ -641,12 +638,12 @@ function install_chroma()
     ## For now, just install zeromq
     git clone --depth 1 -b v4.3.5 https://github.com/zeromq/libzmq.git libzmq_src
     mkdir -p libzmq_build
-    pushd libzmq_build
-    cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} ../libzmq_src
-    make -j${options[procuse]} install
-    popd
+    pushd libzmq_build || exit 1
+    cmake -DCMAKE_INSTALL_PREFIX="${options[prefix]}" ../libzmq_src
+    make -j"${options[procuse]}" install
+    popd || exit 1
 
-    if test -f ${options[prefix]}/lib*/libzmq.a
+    if test -f "${options[prefix]}"/lib*/libzmq.a
     then
         printf "Chroma install successful\n"
     else
@@ -665,11 +662,11 @@ function install_nlopt()
     trap 'handle_error "nlopt install" $LINENO' ERR
     echo "Installing nlopt..."
     git clone https://github.com/stevengj/nlopt.git
-    pushd nlopt
-    cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} . -Bbuild
+    pushd nlopt || exit 1
+    cmake -DCMAKE_INSTALL_PREFIX="${options[prefix]}" . -Bbuild
     cmake --build build --target install
-    popd
-    if test -f ${options[prefix]}/include/nlopt.h
+    popd || exit 1
+    if test -f "${options[prefix]}"/include/nlopt.h
     then
         printf "Nlopt install successful\n"
     else
@@ -684,13 +681,13 @@ function install_nlopt()
 
 
 ## Main function with checks
-if skip_check $@
+if skip_check "$@"
 then
-    install $@
+    install "$@"
 else
     if check_deps
     then
-        install $@
+        install "$@"
     else
         printf "\033[31mPlease install system dependencies as indicated above.\033[0m\n"
         printf "\033[31mYou can skip these checks by passing the --skip-checks flag.\033[0m\n"
