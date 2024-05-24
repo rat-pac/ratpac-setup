@@ -259,7 +259,7 @@ function check_deps()
     done
     # Check libraries with ldd if not using macOS
     libraries=(libX11 libXpm libXft libffi libXext libQt libOpenGL)
-    if ${options[enable_mac]}
+    if [ "${options[enable_mac]}" = true ]
     then
         echo "MacOS install. Required libaries will not be checked."
         echo "Please ensure " "${libraries[@]}" "are installed on your system."
