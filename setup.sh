@@ -321,14 +321,15 @@ function install_cmake()
 {
     trap 'handle_error "cmake install" $LINENO' ERR
     echo "Installing cmake..."
-    git clone https://github.com/Kitware/CMake.git --single-branch --branch v3.22.0 cmake_src
-    mkdir -p cmake_build
-    cd cmake_build || exit 1
-    ../cmake_src/bootstrap --prefix=../local \
-        && make -j"${options[procuse]}" \
-        && make install
-    cd ../
+    # git clone https://github.com/Kitware/CMake.git --single-branch --branch v3.22.0 cmake_src
+    # mkdir -p cmake_build
+    # cd cmake_build || exit 1
+    # ../cmake_src/bootstrap --prefix=../local \
+    #     && make -j"${options[procuse]}" \
+    #     && make install
+    # cd ../
     # Check if cmake was successful, if so clean-up, otherwise exit
+    echo "${options[prefix]}"/bin/cmake
     if test -f "${options[prefix]}"/bin/cmake
     then
         printf "Cmake install successful\n"
