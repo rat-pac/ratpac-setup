@@ -30,6 +30,11 @@ function install(){
     enable_arm64=false  # for arm64 architectures (e.g. mac with silicon chip)
     cleanup=true
     boolOnly=false
+    prefix=$(pwd -P)/local
+    # Versioning
+    root_branch="v6-28-00-patches"
+    geant_branch="v11.1.2"
+    ratpac_repository="https://github.com/rat-pac/ratpac-two.git"
 
     for element in "$@"
     do
@@ -98,10 +103,6 @@ function install(){
             exit 1
         fi
     fi
-    # Versioning
-    root_branch="v6-28-00-patches"
-    geant_branch="v11.1.2"
-    ratpac_repository="https://github.com/rat-pac/ratpac-two.git"
 
     procuse=$(getnproc "$@")
     # End testing
@@ -120,7 +121,6 @@ function install(){
     export CXX
 
     outfile="env.sh"
-    prefix=$(pwd -P)/local
     mkdir -p "${prefix}"/bin
     export PATH=$prefix/bin:$PATH
     export LD_LIBRARY_PATH=$prefix/lib:$LD_LIBRARY_PATH
@@ -321,14 +321,15 @@ function install_cmake()
 {
     trap 'handle_error "cmake install" $LINENO' ERR
     echo "Installing cmake..."
-    git clone https://github.com/Kitware/CMake.git --single-branch --branch v3.22.0 cmake_src
-    mkdir -p cmake_build
-    cd cmake_build || exit 1
-    ../cmake_src/bootstrap --prefix=../local \
-        && make -j"${options[procuse]}" \
-        && make install
-    cd ../
+    # git clone https://github.com/Kitware/CMake.git --single-branch --branch v3.22.0 cmake_src
+    # mkdir -p cmake_build
+    # cd cmake_build || exit 1
+    # ../cmake_src/bootstrap --prefix=../local \
+    #     && make -j"${options[procuse]}" \
+    #     && make install
+    # cd ../
     # Check if cmake was successful, if so clean-up, otherwise exit
+    echo "${options[prefix]}"/bin/cmake
     if test -f "${options[prefix]}"/bin/cmake
     then
         printf "Cmake install successful\n"
