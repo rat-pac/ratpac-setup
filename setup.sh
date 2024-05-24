@@ -582,9 +582,9 @@ function install_ratpac()
         export CRYINCLUDE="${options[prefix]}"/include/cry
         export CRYDATA="${options[prefix]}"/data/cry
     fi
+    cd "${options[prefix]}" || exit 1
     rm -rf ratpac
-    git clone "${options[ratpac_repository]}" ratpac
-    cd ratpac || exit 1
+    git clone "${options[ratpac_repository]}" ratpac && (cd ratpac || exit 1)
     if [ "${options[arm64_enabled]}" = true ]
     then
         sed -i '' 's/x86_64/arm64/g' CMakeLists.txt
@@ -601,12 +601,14 @@ include_directories(${options[prefix]}/include)" CMakeLists.txt
     fi
     # avoid using default Makefile as it lacks portability for different OSs
     # make -j${options[procuse]} && source ./ratpac.sh
-    mkdir -p build && (cd build || exit 1)
+    mkdir -p build
+    cd build || exit 1
     LIBSUFFIX="so"
     if [ "${options[enable_mac]}" = true ]
     then
         LIBSUFFIX="dylib"
     fi
+    pwd
     cmake -DXercesC_INCLUDE_DIR="${options[prefix]}"/include -DXercesC_LIBRARY_RELEASE="${options[prefix]}"/lib/libxerces-c."${LIBSUFFIX}" -DCMAKE_INSTALL_PREFIX=../install ..
     make && make install && cd .. && source ./ratpac.sh
     # Check if ratpac was successful, otherwise exit
