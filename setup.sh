@@ -21,41 +21,10 @@ function install(){
     do
         install_selection[$element]=true
     done
-    # Versioning
-    root_branch="v6-28-00-patches"
-    geant_branch="v11.1.2"
-    ratpac_repository="https://github.com/rat-pac/ratpac-two.git"
-
+    # help message
     help "$@"
-    procuse=$(getnproc "$@")
-    # End testing
-    # Check requirements; Git && GCC
-    if ! [ -x "$(command -v gcc)" ]; then
-        echo "gcc not installed"
-        exit 1
-    fi
-    if ! [ -x "$(command -v git)" ]; then
-        echo "git not installed"
-        exit 1
-    fi
-    CC=$(command -v gcc)
-    export CC
-    CXX=$(command -v g++)
-    export CXX
 
-    outfile="env.sh"
-    prefix=$(pwd -P)/local
-    mkdir -p "${prefix}"/bin
-    export PATH=$prefix/bin:$PATH
-    export LD_LIBRARY_PATH=$prefix/lib:$LD_LIBRARY_PATH
-    export DYLD_LIBRARY_PATH=$prefix/lib:$DYLD_LIBRARY_PATH
-    printf 'export PATH=%s/bin:$PATH\n' "$prefix" > $outfile
-    printf 'export LD_LIBRARY_PATH=%s/lib:$LD_LIBRARY_PATH\n' "$prefix" >> $outfile
-    printf 'export DYLD_LIBRARY_PATH=%s/lib:$DYLD_LIBRARY_PATH\n' "$prefix" >> $outfile
-    printf 'export CC=%s\n' "$CC" >> $outfile
-    printf 'export CXX=%s\n' "$CXX" >> $outfile
-
-    ## Tensorflow options
+    ## run options
     enable_gpu=false
     enable_mac=false
     enable_arm64=false  # for arm64 architectures (e.g. mac with silicon chip)
@@ -114,11 +83,53 @@ function install(){
             enable_arm64=true
         fi
     done
-
     # global options dictionary
     declare -A options=(["procuse"]=$procuse ["prefix"]=$prefix ["root_branch"]=$root_branch \
         ["geant_branch"]=$geant_branch ["enable_gpu"]=$enable_gpu ["enable_mac"]=$enable_mac \
         ["ratpac_repository"]=$ratpac_repository ["cleanup"]=$cleanup)
+
+    # check dependencies unless skipped
+    if ! skip_check "$@"
+    then
+        if ! check_deps
+        then
+            printf "\033[31mPlease install system dependencies as indicated above.\033[0m\n"
+            printf "\033[31mYou can skip these checks by passing the --skip-checks flag.\033[0m\n"
+            exit 1
+        fi
+    fi
+    # Versioning
+    root_branch="v6-28-00-patches"
+    geant_branch="v11.1.2"
+    ratpac_repository="https://github.com/rat-pac/ratpac-two.git"
+
+    procuse=$(getnproc "$@")
+    # End testing
+    # Check requirements; Git && GCC
+    if ! [ -x "$(command -v gcc)" ]; then
+        echo "gcc not installed"
+        exit 1
+    fi
+    if ! [ -x "$(command -v git)" ]; then
+        echo "git not installed"
+        exit 1
+    fi
+    CC=$(command -v gcc)
+    export CC
+    CXX=$(command -v g++)
+    export CXX
+
+    outfile="env.sh"
+    prefix=$(pwd -P)/local
+    mkdir -p "${prefix}"/bin
+    export PATH=$prefix/bin:$PATH
+    export LD_LIBRARY_PATH=$prefix/lib:$LD_LIBRARY_PATH
+    export DYLD_LIBRARY_PATH=$prefix/lib:$DYLD_LIBRARY_PATH
+    printf 'export PATH=%s/bin:$PATH\n' "$prefix" > $outfile
+    printf 'export LD_LIBRARY_PATH=%s/lib:$LD_LIBRARY_PATH\n' "$prefix" >> $outfile
+    printf 'export DYLD_LIBRARY_PATH=%s/lib:$DYLD_LIBRARY_PATH\n' "$prefix" >> $outfile
+    printf 'export CC=%s\n' "$CC" >> $outfile
+    printf 'export CXX=%s\n' "$CXX" >> $outfile
 
     if [ "${install_selection[cmake]}" = true ]
     then
@@ -683,16 +694,5 @@ function install_nlopt()
 }
 
 
-## Main function with checks
-if skip_check "$@"
-then
-    install "$@"
-else
-    if check_deps
-    then
-        install "$@"
-    else
-        printf "\033[31mPlease install system dependencies as indicated above.\033[0m\n"
-        printf "\033[31mYou can skip these checks by passing the --skip-checks flag.\033[0m\n"
-    fi
-fi
+## Main function
+install "$@"
