@@ -639,11 +639,11 @@ function install_chroma()
     git clone --depth 1 -b v4.3.5 https://github.com/zeromq/libzmq.git libzmq_src
     mkdir -p libzmq_build
     pushd libzmq_build || exit 1
-    cmake -DCMAKE_INSTALL_PREFIX="${options[prefix]}" ../libzmq_src
+    cmake -DCMAKE_INSTALL_PREFIX="${options[prefix]}" -DCMAKE_INSTALL_LIBDIR=lib ../libzmq_src
     make -j"${options[procuse]}" install
     popd || exit 1
 
-    if test -f "${options[prefix]}"/lib*/libzmq.a
+    if test -f "${options[prefix]}"/lib/libzmq.a
     then
         printf "Chroma install successful\n"
     else
