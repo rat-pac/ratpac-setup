@@ -423,7 +423,7 @@ function install_geant4()
     mkdir -p geant_build
     cd geant_build || exit 1
     LIBSUFFIX="so"
-    if ${options[enable_mac]}
+    if [ "${options[enable_mac]}" = true ]
     then
         LIBSUFFIX="dylib"
     fi
@@ -459,7 +459,7 @@ function install_cry()
     cd cry_v1.7 || exit 1
     # Lets hack things up a bit to get a shared library
     # macs have a different format for sed
-    if ${options[enable_mac]}
+    if [ "${options[enable_mac]}" = true ]
     then
         sed -i '' 's/$//' src/Makefile
         sed -i '' '25i\
@@ -601,7 +601,7 @@ include_directories(${options[prefix]}/include)" CMakeLists.txt
     # make -j${options[procuse]} && source ./ratpac.sh
     mkdir -p build && (cd build || exit 1)
     LIBSUFFIX="so"
-    if ${options[enable_mac]}
+    if [ "${options[enable_mac]}" = true ]
     then
         LIBSUFFIX="dylib"
     fi
