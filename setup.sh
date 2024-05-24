@@ -461,12 +461,12 @@ function install_cry()
     # macs have a different format for sed
     if [ "${options[enable_mac]}" = true ]
     then
-        sed -i '' 's/$//' src/Makefile
+        sed -i '' 's/\r$//' src/Makefile
         sed -i '' '25i\
 	$(CXX) -shared $(OBJ) -o ../lib/libCRY.so' src/Makefile
         sed -i '' 's/\-Wall/\-Wall \-fPIC/g' src/Makefile
     else
-        sed -i 's/$//' src/Makefile
+        sed -i 's/\r$//' src/Makefile
         sed -i '25 i \\t$(CXX) -shared $(OBJ) -o ../lib/libCRY.so' src/Makefile
         sed -i 's/\-Wall/\-Wall \-fPIC/g' src/Makefile
     fi
