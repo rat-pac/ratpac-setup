@@ -470,6 +470,7 @@ function install_cry()
         sed -i '25 i \\t$(CXX) -shared $(OBJ) -o ../lib/libCRY.so' src/Makefile
         sed -i 's/\-Wall/\-Wall \-fPIC/g' src/Makefile
     fi
+    LD_LIBRARY_PATH="${options[prefix]}"/cry_v1.7/lib:"$LD_LIBRARY_PATH"
     make -j1 # Race condition using multiple threads
     mkdir -p "${options[prefix]}"/data/cry
     mv data/* "${options[prefix]}"/data/cry
