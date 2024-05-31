@@ -120,7 +120,7 @@ function install(){
     CXX=$(command -v g++)
     export CXX
 
-    outfile="env.sh"
+    outfile="${prefix}/../env.sh"
     mkdir -p "${prefix}"/bin
     export PATH=$prefix/bin:$PATH
     export LD_LIBRARY_PATH=$prefix/lib:$LD_LIBRARY_PATH
@@ -191,8 +191,6 @@ function install(){
     then
         install_ratpac
     fi
-
-    trap 'handle_error "post installation tasks" $LINENO' ERR
     if test -f "$prefix"/lib/libCRY.so
     then
         printf 'export CRYLIB=%s/lib\n' "$prefix" >> $outfile
@@ -211,6 +209,7 @@ function help()
         ["skip"]="Skip the following packages" \
         ["gpu"]="Enable GPU support for tensorflow" \
         ["mac"]="Enable Mac support" \
+        ["arm64"]="Enable arm64 architecure support" \
         ["noclean"]="Do not clean up after install")
     for element in "$@"
     do
@@ -630,7 +629,7 @@ include_directories(${options[prefix]}/include)" CMakeLists.txt
         printf "Ratpac install failed ... check logs\n"
         exit 1
     fi
-    cd ../..
+    cd ..
 }
 
 function install_chroma()
