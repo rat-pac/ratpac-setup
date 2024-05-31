@@ -677,7 +677,7 @@ function install_nlopt()
     echo "Installing nlopt..."
     git clone https://github.com/stevengj/nlopt.git
     pushd nlopt || exit 1
-    cmake -DCMAKE_INSTALL_PREFIX="${options[prefix]}" . -Bbuild
+    cmake -DCMAKE_INSTALL_PREFIX="${options[prefix]}" -DCMAKE_INSTALL_LIBDIR=lib . -Bbuild
     cmake --build build --target install
     popd || exit 1
     if test -f "${options[prefix]}"/include/nlopt.h
