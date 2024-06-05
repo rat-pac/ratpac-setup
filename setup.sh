@@ -91,7 +91,7 @@ function install(){
     # global options dictionary
     declare -A options=(["procuse"]=$procuse ["prefix"]=$prefix ["root_branch"]=$root_branch \
         ["geant_branch"]=$geant_branch ["enable_gpu"]=$enable_gpu ["enable_mac"]=$enable_mac \
-        ["ratpac_repository"]=$ratpac_repository ["cleanup"]=$cleanup)
+        ["ratpac_repository"]=$ratpac_repository ["cleanup"]=$cleanup ["enable_arm64"]=$enable_arm64)
 
     # check dependencies unless skipped
     if ! skip_check "$@"
@@ -403,7 +403,7 @@ function install_root()
     mkdir -p root_build
     cd root_build || exit 1
     GLEW=""
-    if ${options[mac_enabled]}
+    if ${options[enable_mac]}
     then    
         GLEW="-D builtin_glew=ON"
     fi
@@ -596,11 +596,11 @@ function install_ratpac()
     rm -rf ratpac
     git clone "${options[ratpac_repository]}" ratpac
     cd ratpac || exit 1
-    if [ "${options[arm64_enabled]}" = true ]
+    if [ "${options[enable_arm64]}" = true ]
     then
         sed -i '' 's/x86_64/arm64/g' CMakeLists.txt
     fi
-    if [ "${options[mac_enabled]}" = true ]
+    if [ "${options[enable_mac]}" = true ]
     then
         sed -i '' 's/.*Wno-terminate.*//g' CMakeLists.txt
         sed -i '' 's/\.so/.dylib/g' config/RatpacConfig.cmake.in
