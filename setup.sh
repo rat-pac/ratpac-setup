@@ -88,6 +88,7 @@ function install(){
             enable_arm64=true
         fi
     done
+    procuse=$(getnproc "$@")
     # global options dictionary
     declare -A options=(["procuse"]=$procuse ["prefix"]=$prefix ["root_branch"]=$root_branch \
         ["geant_branch"]=$geant_branch ["enable_gpu"]=$enable_gpu ["enable_mac"]=$enable_mac \
@@ -104,7 +105,6 @@ function install(){
         fi
     fi
 
-    procuse=$(getnproc "$@")
     # End testing
     # Check requirements; Git && GCC
     if ! [ -x "$(command -v gcc)" ]; then
@@ -323,23 +323,24 @@ function install_cmake()
     git clone https://github.com/Kitware/CMake.git --single-branch --branch v3.22.0 cmake_src
     mkdir -p cmake_build
     cd cmake_build || exit 1
-    ../cmake_src/bootstrap --prefix=../local \
-        && make -j"${options[procuse]}" \
-        && make install
+    ../cmake_src/bootstrap --prefix=../local --parallel="${options[procuse]}"
+    echo make -j"${options[procuse]}"
+    make -j"${options[procuse]}"
+    make install
     cd ../
     # Check if cmake was successful, if so clean-up, otherwise exit
-    echo "${options[prefix]}"/bin/cmake
     if test -f "${options[prefix]}"/bin/cmake
     then
-        printf "Cmake install successful\n"
+        printf "CMake install successful\n"
     else
-        printf "Cmake install failed ... check logs\n"
+        printf "CMake install failed ... check logs\n"
         exit 1
     fi
     if [ "${options[cleanup]}" = true ]
     then
         rm -rf cmake_src cmake_build
     fi
+    
 }
 
 function install_icu()
@@ -611,7 +612,7 @@ include_directories(${options[prefix]}/include)" CMakeLists.txt
 #include <RAT/Processor.hh>' src/core/include/RAT/ProcAllocator.hh
     fi
     # avoid using default Makefile as it lacks portability for different OSs
-    # make -j${options[procuse]} && source ./ratpac.sh
+    # make -j"${options[procuse]}" && source ./ratpac.sh
     mkdir -p build
     cd build || exit 1
     LIBSUFFIX="so"
