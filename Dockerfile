@@ -26,6 +26,7 @@ RUN ./setup.sh --only chroma -j$(nproc)
 RUN ./setup.sh --only root -j$(nproc)
 RUN ./setup.sh --only geant4 -j$(nproc)
 RUN ./setup.sh --only cry
+RUN ./setup.sh --only hdf5 -j$(nproc)
 ENV PATH=/ratpac-setup/local/bin:$PATH
 RUN sed -i '1s/^/#!\/bin\/bash\n/' /ratpac-setup/env.sh
 RUN printf '\nexec "$@"\n' >> /ratpac-setup/env.sh
