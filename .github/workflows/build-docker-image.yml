@@ -33,4 +33,3 @@ jobs:
           push: true
           tags: |
             ratpac/ratpac-two:latest-base
-            ghcr.io/jamesjieranshen/ratpac-two:latest-base
