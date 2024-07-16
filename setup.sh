@@ -15,7 +15,7 @@ handle_error() {
 function install(){
     trap 'handle_error "setup" $LINENO' ERR
     ## Array of installables
-    declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "torch" "ratpac" "nlopt" "xerces" "icu")
+    declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "torch" "ratpac" "nlopt" "xerces" "icu", "hdf5")
     declare -A install_selection
     for element in "${install_options[@]}"
     do
@@ -201,6 +201,11 @@ function install(){
     printf 'if [ -f "%s/../ratpac/ratpac.sh" ]; then\nsource %s/../ratpac/ratpac.sh\nfi\n' "$prefix" "$prefix" >> $outfile
     printf 'if [ -f "%s/../pyrat/bin/activate" ]; then\nsource %s/../pyrat/bin/activate\nfi\n' "$prefix" "$prefix" >> $outfile
     echo "Done"
+
+    if [ "${install_selection[hdf5]}" = true ]
+    then
+      install_hdf5
+    fi
 }
 
 function help()
@@ -670,6 +675,29 @@ function install_chroma()
         rm -rf libzmq_src libzmq_build
     fi
 
+}
+
+function install_hdf5()
+{
+    git clone --depth=1 -b hdf5_1.14.4.3 https://github.com/HDFGroup/hdf5.git hdf5_src
+    pushd hdf5_src
+    ./configure  --prefix=${options[prefix]} --enable-cxx=yes
+    make -j${options[procuse]} install
+    popd
+    rm -rf hdf5_src
+    
+    # Now install HighFive
+    git clone --depth 1 -b v2.9.0 https://github.com/BlueBrain/HighFive.git HighFive-src
+    cmake -DHIGHFIVE_EXAMPLES=Off \
+      -DHIGHFIVE_USE_BOOST=Off \
+      -DHIGHFIVE_UNIT_TESTS=Off \
+      -DCMAKE_INSTALL_PREFIX=${options[prefix]} \
+      -B HighFive-src/build \
+      HighFive-src
+
+    cmake --build HighFive-src/build
+    cmake --install HighFive-src/build
+    rm -rf HighFive-src
 }
 
 function install_nlopt()
