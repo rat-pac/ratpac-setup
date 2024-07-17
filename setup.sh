@@ -15,7 +15,7 @@ handle_error() {
 function install(){
     trap 'handle_error "setup" $LINENO' ERR
     ## Array of installables
-    declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "torch" "ratpac" "nlopt" "xerces" "icu", "hdf5")
+    declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "torch" "ratpac" "nlopt" "xerces" "icu" "hdf5")
     declare -A install_selection
     for element in "${install_options[@]}"
     do
