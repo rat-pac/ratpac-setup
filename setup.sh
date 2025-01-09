@@ -33,6 +33,7 @@ function install(){
     prefix=$(pwd -P)/local
     # Versioning
     root_branch="v6-28-00-patches"
+    root_branch_mac="v6-34-00-patches"
     geant_branch="v11.1.2"
     ratpac_repository="https://github.com/rat-pac/ratpac-two.git"
 
@@ -92,7 +93,8 @@ function install(){
     # global options dictionary
     declare -A options=(["procuse"]=$procuse ["prefix"]=$prefix ["root_branch"]=$root_branch \
         ["geant_branch"]=$geant_branch ["enable_gpu"]=$enable_gpu ["enable_mac"]=$enable_mac \
-        ["ratpac_repository"]=$ratpac_repository ["cleanup"]=$cleanup ["enable_arm64"]=$enable_arm64)
+        ["ratpac_repository"]=$ratpac_repository ["cleanup"]=$cleanup ["enable_arm64"]=$enable_arm64 \
+        ["root_branch_mac"]=$root_branch_mac)
 
     # check dependencies unless skipped
     if ! skip_check "$@"
@@ -383,7 +385,8 @@ function install_xerces()
     cd xerces-c-3.2.5 || exit 1
     mkdir -p build
     cd build || exit 1
-    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="${options[prefix]}" -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_BUILD_TYPE=Release -DICU_ROOT="${options[prefix]}" .. \
+    #cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="${options[prefix]}" -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_BUILD_TYPE=Release  -DICU_ROOT="${options[prefix]}" .. \
+    cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="${options[prefix]}" -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_BUILD_TYPE=Release -Dtranscoder=iconv .. \
         && make -j"${options[procuse]}" \
         && make install
     cd ../..
@@ -405,15 +408,22 @@ function install_root()
 {
     trap 'handle_error "root install" $LINENO' ERR
     echo "Installing ROOT..."
-    git clone https://github.com/root-project/root.git --depth 1 --single-branch --branch "${options[root_branch]}" root_src
+    if ${options[enable_mac]}
+    then    
+        git clone https://github.com/root-project/root.git --depth 1 --single-branch --branch "${options[root_branch_mac]}" root_src
+    else
+        git clone https://github.com/root-project/root.git --depth 1 --single-branch --branch "${options[root_branch]}" root_src
+    fi
     mkdir -p root_build
     cd root_build || exit 1
     GLEW=""
+    MINUIT="ON"
     if ${options[enable_mac]}
     then    
         GLEW="-D builtin_glew=ON"
+        MINUIT="OFF"
     fi
-    cmake -DCMAKE_INSTALL_PREFIX="${options[prefix]}" -D xrootd=OFF -D roofit=OFF -D minuit2=ON -D CMAKE_CXX_STANDARD=17 "${GLEW}"\
+    cmake -DCMAKE_INSTALL_PREFIX="${options[prefix]}" -D xrootd=OFF -D roofit=OFF -D minuit2="${MINUIT}" -D CMAKE_CXX_STANDARD=17 "${GLEW}"\
             ../root_src \
         && make -j"${options[procuse]}" \
         && make install
