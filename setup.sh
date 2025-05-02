@@ -15,7 +15,7 @@ handle_error() {
 function install(){
     trap 'handle_error "setup" $LINENO' ERR
     ## Array of installables
-    declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "torch" "ratpac" "nlopt" "xerces" "icu" "hdf5")
+    declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "torch" "ratpac" "nlopt" "xerces" "hdf5")
     declare -A install_selection
     for element in "${install_options[@]}"
     do
@@ -34,7 +34,8 @@ function install(){
     # Versioning
     root_branch="v6-28-00-patches"
     root_branch_mac="v6-34-00-patches"
-    geant_branch="v11.1.2"
+    #geant_branch="v11.1.2"
+    geant_branch="v11.3.2"
     ratpac_repository="https://github.com/rat-pac/ratpac-two.git"
 
     for element in "$@"
@@ -136,11 +137,6 @@ function install(){
     if [ "${install_selection[cmake]}" = true ]
     then
         install_cmake
-    fi
-
-    if [ "${install_selection[icu]}" = true ]
-    then
-        install_icu
     fi
 
     if [ "${install_selection[xerces]}" = true ]
@@ -348,32 +344,6 @@ function install_cmake()
         rm -rf cmake_src cmake_build
     fi
     
-}
-
-function install_icu()
-{
-    trap 'handle_error "ICU install" $LINENO' ERR
-    echo "Installing ICU..."
-    wget https://github.com/unicode-org/icu/releases/download/release-74-2/icu4c-74_2-src.tgz
-    tar xzf icu4c-74_2-src.tgz
-    cd icu/source || exit 1
-    chmod +x runConfigureICU configure install-sh
-    export CXXFLAGS="-std=c++17"
-    ./configure --prefix="${options[prefix]}"
-    make -j"${options[procuse]}" && make install
-    cd ../..
-    # Check if cmake was successful, if so clean-up, otherwise exit
-    if test -f "${options[prefix]}"/bin/icu-config
-    then
-        printf "ICU install successful\n"
-    else
-        printf "ICU install failed ... check logs\n"
-        exit 1
-    fi
-    if [ "${options[cleanup]}" = true ]
-    then
-        rm -rf icu4c-74_2-src.tgz icu
-    fi
 }
 
 function install_xerces()
