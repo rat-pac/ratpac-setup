@@ -34,8 +34,8 @@ function install(){
     # Versioning
     root_branch="v6-28-00-patches"
     root_branch_mac="v6-34-00-patches"
-    #geant_branch="v11.1.2"
-    geant_branch="v11.3.2"
+    geant_branch="v11.1.2"
+    #geant_branch="v11.3.2"
     ratpac_repository="https://github.com/rat-pac/ratpac-two.git"
 
     for element in "$@"
