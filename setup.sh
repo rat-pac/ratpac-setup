@@ -304,7 +304,8 @@ function install_root()
     git clone https://github.com/root-project/root.git --depth 1 --single-branch --branch ${options[root_branch]} root_src
     mkdir -p root_build
     cd root_build
-    cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} -D xrootd=OFF -D roofit=OFF -D minuit2=ON\
+    cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} -D xrootd=OFF -D roofit=OFF -D minuit2=ON \
+          -D CMAKE_CXX_STANDARD=17 -D CXX_STANDARD_REQUIRED=ON \
             ../root_src \
         && make -j${options[procuse]} \
         && make install
@@ -332,6 +333,7 @@ function install_geant4()
         -DGEANT4_BUILD_MULTITHREADED=OFF -DGEANT4_USE_QT=ON -DGEANT4_INSTALL_DATA=ON \
         -DGEANT4_BUILD_TLS_MODEL=global-dynamic \
         -DGEANT4_INSTALL_DATA_TIMEOUT=15000 -DGEANT4_USE_GDML=ON \
+        -DCMAKE_CXX_STANDARD=17 -DCXX_STANDARD_REQUIRED=ON \
         && make -j${options[procuse]} \
         && make install
     cd ../
