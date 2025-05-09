@@ -16,9 +16,15 @@ function install(){
     trap 'handle_error "setup" $LINENO' ERR
     ## Array of installables
     declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "torch" "ratpac" "nlopt" "xerces" "hdf5")
+    # declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "torch" "ratpac" "nlopt" "hdf5")
     declare -A install_selection
     for element in "${install_options[@]}"
     do
+        if [ "$element" == "xerces" ]
+        then
+            install_selection[$element]=false
+            continue
+        fi
         install_selection[$element]=true
     done
     # help message
@@ -35,7 +41,7 @@ function install(){
     root_branch="v6-28-00-patches"
     root_branch_mac="v6-34-00-patches"
     geant_branch="v11.1.2"
-    #geant_branch="v11.3.2"
+    # geant_branch="v11.3.2"
     ratpac_repository="https://github.com/rat-pac/ratpac-two.git"
 
     for element in "$@"
@@ -355,7 +361,6 @@ function install_xerces()
     cd xerces-c-3.2.5 || exit 1
     mkdir -p build
     cd build || exit 1
-    #cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="${options[prefix]}" -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_BUILD_TYPE=Release  -DICU_ROOT="${options[prefix]}" .. \
     cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="${options[prefix]}" -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_BUILD_TYPE=Release -Dtranscoder=iconv .. \
         && make -j"${options[procuse]}" \
         && make install
@@ -424,12 +429,27 @@ function install_geant4()
     then
         LIBSUFFIX="dylib"
     fi
-    cmake -DCMAKE_INSTALL_PREFIX="${options[prefix]}" -DCMAKE_INSTALL_LIBDIR=lib \
+    if [ -f "${options[prefix]}"/lib/libxerces-c.${LIBSUFFIX} ]
+    then
+        cmake -DCMAKE_INSTALL_PREFIX="${options[prefix]}" -DCMAKE_INSTALL_LIBDIR=lib \
         ../geant_src -DGEANT4_BUILD_EXPAT=OFF \
         -DGEANT4_BUILD_MULTITHREADED=OFF -DGEANT4_USE_QT=ON -DGEANT4_INSTALL_DATA=ON \
         -DGEANT4_BUILD_TLS_MODEL=global-dynamic \
         -DGEANT4_INSTALL_DATA_TIMEOUT=15000 -DGEANT4_USE_GDML=ON \
         -DXercesC_INCLUDE_DIR="${options[prefix]}"/include -DXercesC_LIBRARY_RELEASE="${options[prefix]}"/lib/libxerces-c."${LIBSUFFIX}" 
+    else
+        cmake -DCMAKE_INSTALL_PREFIX="${options[prefix]}" -DCMAKE_INSTALL_LIBDIR=lib \
+        ../geant_src -DGEANT4_BUILD_EXPAT=OFF \
+        -DGEANT4_BUILD_MULTITHREADED=OFF -DGEANT4_USE_QT=ON -DGEANT4_INSTALL_DATA=ON \
+        -DGEANT4_BUILD_TLS_MODEL=global-dynamic \
+        -DGEANT4_INSTALL_DATA_TIMEOUT=15000 -DGEANT4_USE_GDML=ON
+    fi
+    # cmake -DCMAKE_INSTALL_PREFIX="${options[prefix]}" -DCMAKE_INSTALL_LIBDIR=lib \
+    #     ../geant_src -DGEANT4_BUILD_EXPAT=OFF \
+    #     -DGEANT4_BUILD_MULTITHREADED=OFF -DGEANT4_USE_QT=ON -DGEANT4_INSTALL_DATA=ON \
+    #     -DGEANT4_BUILD_TLS_MODEL=global-dynamic \
+    #     -DGEANT4_INSTALL_DATA_TIMEOUT=15000 -DGEANT4_USE_GDML=ON \
+        # -DXercesC_INCLUDE_DIR="${options[prefix]}"/include -DXercesC_LIBRARY_RELEASE="${options[prefix]}"/lib/libxerces-c."${LIBSUFFIX}" 
     make -j"${options[procuse]}" \
         && make install
     cd ../
@@ -605,7 +625,15 @@ include_directories(${options[prefix]}/include)" CMakeLists.txt
     then
         LIBSUFFIX="dylib"
     fi
-    cmake -DXercesC_INCLUDE_DIR="${options[prefix]}"/include -DXercesC_LIBRARY_RELEASE="${options[prefix]}"/lib/libxerces-c."${LIBSUFFIX}" -DCMAKE_INSTALL_PREFIX=../install ..
+    if [ -f "${options[prefix]}"/lib/libxerces-c.${LIBSUFFIX} ]
+    then
+        cmake -DCMAKE_INSTALL_PREFIX="${options[prefix]}" -DXercesC_INCLUDE_DIR="${options[prefix]}"/include -DXercesC_LIBRARY_RELEASE="${options[prefix]}"/lib/libxerces-c."${LIBSUFFIX}" ..
+    else
+        cmake -DCMAKE_INSTALL_PREFIX="${options[prefix]}" ..
+    fi
+    # cmake -DCMAKE_INSTALL_PREFIX=../install .. \
+    # -DXercesC_INCLUDE_DIR="${options[prefix]}"/include -DXercesC_LIBRARY_RELEASE="${options[prefix]}"/lib/libxerces-c."${LIBSUFFIX}" \
+   
     make && make install && cd .. && source ./ratpac.sh
     # Check if ratpac was successful, otherwise exit
     if test -f install/bin/rat

@@ -17,9 +17,7 @@ you do not wish to reinstall, though do note you will have to properly link
 them in that case (ROOT / Geant-4).
 
 - CMake v3.22.0+
-- ICU4C 74.2
-- Xerces-C 3.2.5
-- Python 3.x.x
+- Xerces-C 3.2.5 (not built by default)
 - Root 6.25+
 - Geant-4 11.0
 - CRY 1.7
@@ -49,6 +47,13 @@ Additional options are available, including passing make commands
 ./setup.sh -h
 ```
 
+### Building Xerces-C
+The Xerces-C library is required by Geant4. Most machines will have Xerces-C, but not all. The library is NOT included in the default ratpac-setup build, but can be pre-built before your main installation using ratpac-setup. To build Xerces-C, use the command
+```
+./setup --only xerces
+```
+and then continue with the main installation.
+
 ### MacOS
 Installation is possible on MacOS using the flag `--mac`. If using Apple 
 Silicon (ARM64 architecture), one will also need the flag `--arm64`. The 
@@ -65,7 +70,7 @@ error message `read jobs pipe: Resource temporarily unavailable.`. There doesn't
 seem to be a consistent permanent solution to this, but if you run the 
 `make && make install` command again within the `root_build` directory (maybe 
 more than once), the build should finish. Then continue with the installation
-with setup.sh and skipping cmake, icu, xerces and root.
+with setup.sh, skipping cmake and root.
 
 Mac installation tested on Apple M1 Pro with Sonoma 14.5. 
 
