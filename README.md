@@ -17,7 +17,7 @@ you do not wish to reinstall, though do note you will have to properly link
 them in that case (ROOT / Geant-4).
 
 - CMake v3.22.0+
-- Python 3.x.x
+- Xerces-C 3.2.5 (not built by default)
 - Root 6.25+
 - Geant-4 11.0
 - CRY 1.7
@@ -41,13 +41,38 @@ Additional options are available, including passing make commands
 ```bash
 # For linux, tensorflow can either use the cpu(default) or gpu
 ./setup.sh --only tensorflow --gpu
-# For mac, a separate tensorflow is available
-./setup.sh --only tensorflow --mac
 # Pass number of processors to make, and even keep downloaded files for debugging
 ./setup.sh -j8 --noclean
 # For complete information run
 ./setup.sh -h
 ```
+
+### Building Xerces-C
+The Xerces-C library is required by Geant4. Most machines will have Xerces-C, but not all. The library is NOT included in the default ratpac-setup build, but can be pre-built before your main installation using ratpac-setup. To build Xerces-C, use the command
+```
+./setup --only xerces
+```
+and then continue with the main installation.
+
+### MacOS
+Installation is possible on MacOS using the flag `--mac`. If using Apple 
+Silicon (ARM64 architecture), one will also need the flag `--arm64`. The 
+installation *assumes a zsh shell* for macs.
+
+The MacOS installation is similar to the Linux installation, but uses dynamic
+libraries rather than shared libraries. Some CMakeLists.txt files (including
+ratpac's) are adjusted for the mac installation. Please be aware of this if 
+developing code and committing changes to CMakeLists.txt. Ideally, we will 
+remove these CMakeLists.txt edits in the future.
+
+On Apple Silicon, the installation of ROOT can sometimes run into issues with the
+error message `read jobs pipe: Resource temporarily unavailable.`. There doesn't
+seem to be a consistent permanent solution to this, but if you run the 
+`make && make install` command again within the `root_build` directory (maybe 
+more than once), the build should finish. Then continue with the installation
+with setup.sh, skipping cmake and root.
+
+Mac installation tested on Apple M1 Pro with Sonoma 14.5. 
 
 ## Usage 
 Once installation is complete there will be a new directory structure from where
