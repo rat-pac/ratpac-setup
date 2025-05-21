@@ -5,7 +5,7 @@ SHELL ["/bin/bash", "-c"]
 
 RUN apt-get -q update \
  && DEBIAN_FRONTEND=noninteractive apt-get -qy install --no-install-recommends \
-    git curl build-essential vim libx11-dev libxpm-dev libqt5opengl5-dev ssh cmake \
+    git curl build-essential vim libx11-dev libxpm-dev libqt5opengl5-dev ssh cmake clang-format\
     xserver-xorg-video-intel libxft-dev libxext-dev libxerces-c-dev \
     libxkbcommon-x11-dev libopengl-dev python3 python3-dev python3-numpy \
     libcurl4-gnutls-dev ca-certificates libssl-dev libffi-dev \
