@@ -304,7 +304,7 @@ function install_root()
     git clone https://github.com/root-project/root.git --depth 1 --single-branch --branch ${options[root_branch]} root_src
     mkdir -p root_build
     cd root_build
-    cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} -D xrootd=OFF -D roofit=OFF -D minuit2=ON -D mathmore=ON \
+    cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} -D xrootd=OFF -D roofit=OFF -D minuit2=ON -D mathmore=ON -D fftw3=ON\
           -D CMAKE_CXX_STANDARD=17 -D CXX_STANDARD_REQUIRED=ON \
             ../root_src \
         && make -j${options[procuse]} \
