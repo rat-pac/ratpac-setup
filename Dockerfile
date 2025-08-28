@@ -23,6 +23,7 @@ WORKDIR /ratpac-setup
 RUN chown -R ratuser:ratuser /ratpac-setup
 USER ratuser
 RUN ./setup.sh --only chroma -j$(nproc)
+RUN ./setup.sh --only fftw -j$(nproc)
 RUN ./setup.sh --only root -j$(nproc)
 RUN ./setup.sh --only geant4 -j$(nproc)
 RUN ./setup.sh --only cry

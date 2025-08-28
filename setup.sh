@@ -11,7 +11,7 @@ exec 2>&1
 
 function install(){
     ## Array of installables
-    declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "torch" "ratpac" "nlopt" "hdf5")
+    declare -a install_options=("cmake" "root" "geant4" "chroma" "cry" "tensorflow" "torch" "ratpac" "nlopt" "hdf5", "fftw")
     declare -A install_selection
     for element in "${install_options[@]}"
     do
@@ -112,7 +112,11 @@ function install(){
     then
         install_cmake
     fi
-
+    # FFTW needs to be installed before ROOT
+    if [ "${install_selection[fftw]}" = true ]
+    then
+        install_fftw
+    fi
     if [ "${install_selection[root]}" = true ]
     then
         install_root
@@ -304,7 +308,7 @@ function install_root()
     git clone https://github.com/root-project/root.git --depth 1 --single-branch --branch ${options[root_branch]} root_src
     mkdir -p root_build
     cd root_build
-    cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} -D xrootd=OFF -D roofit=OFF -D minuit2=ON -D mathmore=ON -D builtin_fftw3=ON\
+    cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} -D xrootd=OFF -D roofit=OFF -D minuit2=ON -D mathmore=ON -D fftw3=ON\
           -D CMAKE_CXX_STANDARD=17 -D CXX_STANDARD_REQUIRED=ON \
             ../root_src \
         && make -j${options[procuse]} \
@@ -477,6 +481,25 @@ function install_chroma()
     rm -rf libzmq_src libzmq_build
 
 
+}
+function install_fftw()
+{
+    curl https://www.fftw.org/fftw-3.3.10.tar.gz --output fftw-src.tar.gz
+    mkdir -pv fftw_src
+    echo -n "Extracting FFTW"
+    tar xf fftw-src.tar.gz -C ./fftw_src --strip-components=1 --checkpoint=10 --checkpoint-action=dot
+    echo "Done."
+    pushd fftw_src
+    cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} \
+      -D ENABLE_SSE=ON -D ENABLE_SSE2=ON \
+      -D ENABLE_AVX=ON -DENABLE_AVX2=ON \
+      -DDISABLE_FORTRAN=ON .
+    make install -j${options[procuse]}
+    popd
+    if [ "${options[cleanup]}" = true ]
+    then
+        rm -rf fftw_src fftw-src.tar.gz
+    fi
 }
 
 function install_hdf5()
