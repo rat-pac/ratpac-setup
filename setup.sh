@@ -331,6 +331,11 @@ function install_root()
 function install_geant4()
 {
     git clone https://github.com/geant4/geant4.git --depth 1 --single-branch --branch ${options[geant_branch]} geant_src
+    # Apply patches. Ref: https://github.com/spack/spack-packages/blob/develop/repos/spack_repo/builtin/packages/geant4/package.py
+    pushd geant_src
+    git apply ../patches/columns-11.patch
+    git apply ../patches/package-cache.patch
+    popd
     mkdir -p geant_build
     cd geant_build
     cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} ../geant_src -DGEANT4_BUILD_EXPAT=OFF \

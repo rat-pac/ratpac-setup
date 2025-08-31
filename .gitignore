@@ -1,4 +1,6 @@
 *
+!patches
+!patches/*
 !README.md
 !setup.sh
 !Dockerfile
