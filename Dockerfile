@@ -8,7 +8,7 @@ RUN apt-get -q update \
     git curl build-essential vim libgsl-dev libx11-dev libxpm-dev libqt5opengl5-dev ssh cmake clang-format\
     xserver-xorg-video-intel libxft-dev libxext-dev libxerces-c-dev \
     libxkbcommon-x11-dev libopengl-dev python3 python3-dev python3-numpy \
-    libcurl4-gnutls-dev ca-certificates libssl-dev libffi-dev \
+    libcurl4-gnutls-dev ca-certificates libssl-dev libffi-dev libtbb-dev\
  && apt-get autoclean \
  && apt-get clean
 # Strip ABI tag to ensure that QT libraries can be used on EL7
@@ -17,7 +17,7 @@ RUN useradd -ms /bin/bash ratuser
 
 WORKDIR /
 
-RUN git clone https://github.com/rat-pac/ratpac-setup.git
+COPY ./setup.sh /ratpac-setup/setup.sh
 WORKDIR /ratpac-setup
 
 RUN chown -R ratuser:ratuser /ratpac-setup

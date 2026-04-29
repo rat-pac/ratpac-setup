@@ -18,7 +18,8 @@ function install(){
         install_selection[$element]=true
     done
     # Versioning
-    root_branch="v6-36-00-patches"
+    # root_branch="v6-36-00-patches"
+    root_tarball="root_v6.36.12.Linux-ubuntu22.04-x86_64-gcc11.4.tar.gz"
     geant_branch="v11.1.2"
     ratpac_repository="https://github.com/rat-pac/ratpac-two.git"
 
@@ -104,7 +105,7 @@ function install(){
     done
 
     # global options dictionary
-    declare -A options=(["procuse"]=$procuse ["prefix"]=$prefix ["root_branch"]=$root_branch \
+    declare -A options=(["procuse"]=$procuse ["prefix"]=$prefix ["root_tarball"]=$root_tarball \
         ["geant_branch"]=$geant_branch ["enable_gpu"]=$enable_gpu ["enable_mac"]=$enable_mac \
         ["ratpac_repository"]=$ratpac_repository ["cleanup"]=$cleanup)
 
@@ -305,16 +306,11 @@ function install_cmake()
 
 function install_root()
 {
-    git clone https://github.com/root-project/root.git --depth 1 --single-branch --branch ${options[root_branch]} root_src
-    mkdir -p root_build
-    cd root_build
-    cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} -D xrootd=OFF -D roofit=OFF -D mathmore=ON -D fftw3=ON\
-          -D CMAKE_CXX_STANDARD=17 -D CXX_STANDARD_REQUIRED=ON \
-            ../root_src \
-        && make -j${options[procuse]} \
-        && make install
-    cd ../
-    # Check if root was successful, if so clean-up, otherwise exit
+    curl -LO "https://root.cern/download/${options[root_tarball]}"
+    pushd ${options[prefix]}
+    tar zxvf "../${options[root_tarball]}" --strip-components=1
+    popd
+    if [ "${options[cleanup]}" = true ]
     if test -f ${options[prefix]}/bin/root
     then
         printf "Root install successful\n"
@@ -322,9 +318,8 @@ function install_root()
         printf "Root install failed ... check logs\n"
         exit 1
     fi
-    if [ "${options[cleanup]}" = true ]
     then
-        rm -rf root_src root_build
+        rm "$ROOT_TARBALL"
     fi
 }
 
