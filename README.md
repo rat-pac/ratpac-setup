@@ -18,11 +18,18 @@ them in that case (ROOT / Geant-4).
 
 - CMake v3.22.0+
 - Python 3.x.x
-- Root 6.25+
-- Geant-4 11.0
+- Root 6.36+
+- Geant-4 11.4
+- FFTW
+- Rat-pac
+
+Packages below are included in the setup script but optional for Rat-pac installation:
 - CRY 1.7
 - Tensorflow 2.9.1
-- Rat-pac
+- Chroma
+- PyTorch
+- NLopt 2.8.0+
+- HDF5 and HighFive
 
 ## Installation
 The installation script can be used to install each component individually or
