@@ -20,7 +20,7 @@ function install(){
     # Versioning
     # root_branch="v6-36-00-patches"
     root_tarball="root_v6.36.12.Linux-ubuntu22.04-x86_64-gcc11.4.tar.gz"
-    geant_branch="v11.1.2"
+    geant_branch="v11.4.1"
     ratpac_repository="https://github.com/rat-pac/ratpac-two.git"
 
     help $@
@@ -326,11 +326,6 @@ function install_root()
 function install_geant4()
 {
     git clone https://github.com/geant4/geant4.git --depth 1 --single-branch --branch ${options[geant_branch]} geant_src
-    # Apply patches. Ref: https://github.com/spack/spack-packages/blob/develop/repos/spack_repo/builtin/packages/geant4/package.py
-    pushd geant_src
-    git apply ../patches/columns-11.patch
-    git apply ../patches/package-cache.patch
-    popd
     mkdir -p geant_build
     cd geant_build
     cmake -DCMAKE_INSTALL_PREFIX=${options[prefix]} ../geant_src -DGEANT4_BUILD_EXPAT=OFF \
